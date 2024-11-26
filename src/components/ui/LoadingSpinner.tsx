@@ -1,28 +1,61 @@
-// src/components/ui/LoadingSpinner.tsx
-
 import React from 'react';
 
 interface LoadingSpinnerProps {
-  size?: 'sm' | 'md' | 'lg';
-  color?: string;
+  size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
+  variant?: 'primary' | 'secondary' | 'white';
+  className?: string;
+  thickness?: 'thin' | 'normal' | 'thick';
+  label?: string;
 }
 
-const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({ 
-  size = 'md', 
-  color = 'blue-500' 
+export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({ 
+  size = 'md',
+  variant = 'primary',
+  className,
+  thickness = 'normal',
+  label = 'Loading...'
 }) => {
   const sizeClasses = {
-    sm: 'h-8 w-8',
-    md: 'h-16 w-16',
-    lg: 'h-32 w-32'
+    xs: 'h-4 w-4',
+    sm: 'h-6 w-6',
+    md: 'h-8 w-8',
+    lg: 'h-12 w-12',
+    xl: 'h-16 w-16'
+  };
+
+  const thicknessClasses = {
+    thin: 'border',
+    normal: 'border-2',
+    thick: 'border-4'
+  };
+
+  const variantClasses = {
+    primary: 'border-blue-500 border-t-transparent',
+    secondary: 'border-gray-300 border-t-transparent dark:border-gray-600',
+    white: 'border-white border-t-transparent'
+  };
+
+  const combineClasses = (...classes: (string | undefined)[]) => {
+    return classes.filter(Boolean).join(' ');
   };
 
   return (
-    <div className="flex justify-center items-center h-full">
+    <div 
+      role="status" 
+      className={combineClasses(
+        "inline-flex items-center justify-center",
+        className
+      )}
+    >
       <div 
-        className={`animate-spin rounded-full border-t-2 border-b-2 border-${color} ${sizeClasses[size]}`}
-        aria-label="Loading"
-      ></div>
+        className={combineClasses(
+          'animate-spin rounded-full',
+          sizeClasses[size],
+          thicknessClasses[thickness],
+          variantClasses[variant]
+        )}
+      />
+      <span className="sr-only">{label}</span>
     </div>
   );
 };

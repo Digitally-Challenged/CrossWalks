@@ -5,9 +5,23 @@ export type GEDLevel = '1' | '2' | '3' | '4' | '5' | '6';
 export type WorkerFunctionLevel = '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8';
 export type AptitudeLevel = '1' | '2' | '3' | '4' | '5';
 export type SearchMode = 'contains' | 'starts_with' | 'ends_with';
+export type SearchColumn = 'Title' | 'Code';
 
 export type SortOrder = 'asc' | 'desc';
 export type SortByType = 'SVP' | 'titleAsc' | 'titleDesc' | 'codeAsc' | 'codeDesc' | 'SVPNum' | 'Title' | 'Code' | 'Strength';
+
+export interface SearchParams {
+  search_term?: string;
+  title_search?: string;
+  code_search?: string;
+  limit?: number;
+  search_mode?: SearchMode;
+  sort_field?: SortByType;
+  sort_order?: SortOrder;
+  page?: number;
+  search_column?: SearchColumn;
+  offset?: number;
+}
 
 export interface JobData {
   readonly jobTitle: string;
@@ -171,128 +185,91 @@ export interface JobData {
   };
 }
 
-// SearchParams: Defines the parameters used for job searches
-// This interface is crucial for structuring search requests to the API
-export interface SearchParams {
-  search_term?: string;
-  title_search?: string;
-  code_search?: string;
-  limit?: number;
-  search_mode?: SearchMode;
-  sort_field?: SortByType;
-  sort_order?: 'asc' | 'desc';
-  page?: number;
+export interface AdvancedSearchFilters {
+  title: string;
+  strength: StrengthLevel | null;
+  svp: SVPLevel | null;
+  posturals: {
+    climbing: FrequencyLevel | '';
+    balancing: FrequencyLevel | '';
+    stooping: FrequencyLevel | '';
+    kneeling: FrequencyLevel | '';
+    crouching: FrequencyLevel | '';
+    crawling: FrequencyLevel | '';
+  };
+  manipulative: {
+    reaching: FrequencyLevel | '';
+    handling: FrequencyLevel | '';
+    fingering: FrequencyLevel | '';
+  };
+  sensory: {
+    feeling: FrequencyLevel | '';
+    talking: FrequencyLevel | '';
+    hearing: FrequencyLevel | '';
+    tasteSmell: FrequencyLevel | '';
+  };
+  visual: {
+    nearAcuity: FrequencyLevel | '';
+    farAcuity: FrequencyLevel | '';
+    depthPerception: FrequencyLevel | '';
+    accommodation: FrequencyLevel | '';
+    colorVision: FrequencyLevel | '';
+    fieldOfVision: FrequencyLevel | '';
+  };
+  environmental: {
+    weather: FrequencyLevel | '';
+    extremeCold: FrequencyLevel | '';
+    extremeHeat: FrequencyLevel | '';
+    wet: FrequencyLevel | '';
+    noise: FrequencyLevel | '';
+    vibration: FrequencyLevel | '';
+    atmosphericConditions: FrequencyLevel | '';
+    movingMechanicalParts: FrequencyLevel | '';
+    electricShock: FrequencyLevel | '';
+    highPlaces: FrequencyLevel | '';
+    radiation: FrequencyLevel | '';
+    explosives: FrequencyLevel | '';
+    toxicChemicals: FrequencyLevel | '';
+    other: FrequencyLevel | '';
+  };
+  workerFunctions: {
+    data: WorkerFunctionLevel | '';
+    people: WorkerFunctionLevel | '';
+    things: WorkerFunctionLevel | '';
+  };
+  generalEducationalDevelopment: {
+    reasoning: GEDLevel | '';
+    math: GEDLevel | '';
+    language: GEDLevel | '';
+  };
 }
 
-export interface APIResponse<T> {
-  status: 'success' | 'error';
-  message?: string;
-  results?: T[];
-  record?: T;
-  // ... any other properties your API response might have
+export const UI_FREQUENCY_DISPLAY = {
+  'Not Present': 'NP',
+  'Occasionally': 'Occ.',
+  'Frequently': 'Freq.',
+  'Constantly': 'Const.'
+} as const;
+
+export const UI_STRENGTH_DISPLAY = {
+  'Sedentary': 'Sed',
+  'Light': 'Light',
+  'Medium': 'Med',
+  'Heavy': 'Heavy',
+  'Very Heavy': 'V Hvy'
+} as const;
+
+export type UIFrequencyDisplay = typeof UI_FREQUENCY_DISPLAY[keyof typeof UI_FREQUENCY_DISPLAY];
+export type UIStrengthDisplay = typeof UI_STRENGTH_DISPLAY[keyof typeof UI_STRENGTH_DISPLAY];
+
+export interface AdvancedSearchParams extends SearchParams {
+  strength?: StrengthLevel;
+  svp?: SVPLevel;
+  posturals?: Record<string, FrequencyLevel>;
+  manipulative?: Record<string, FrequencyLevel>;
+  sensory?: Record<string, FrequencyLevel>;
+  visual?: Record<string, FrequencyLevel>;
+  environmental?: Record<string, FrequencyLevel>;
+  workerFunctions?: Record<string, WorkerFunctionLevel>;
+  generalEducationalDevelopment?: Record<string, GEDLevel>;
 }
-
-// APIJobData: Represents the job data structure returned by the API
-// This interface maps directly to the raw data format from the backend
-export interface APIJobData {
-  Ncode?: number;
-  DocumentNumber?: string;
-  Code: string;
-  DLU?: number;
-  WFData?: number;
-  WFDataSig?: string;
-  WFPeople?: number;
-  WFPeopleSig?: string;
-  WFThings?: number;
-  WFThingsSig?: string;
-  GEDR?: number;
-  GEDM?: number;
-  GEDL?: number;
-  SVPNum?: number;
-  AptGenLearn?: number;
-  AptVerbal?: number;
-  AptNumerical?: number;
-  AptSpacial?: number;
-  AptFormPer?: number;
-  AptClericalPer?: number;
-  AptMotor?: number;
-  AptFingerDext?: number;
-  AptManualDext?: number;
-  AptEyeHandCoord?: number;
-  AptColorDisc?: number;
-  WField1?: string;
-  WField2?: string;
-  WField3?: string;
-  MPSMS1?: string;
-  MPSMS2?: string;
-  MPSMS3?: string;
-  Temp1?: string;
-  Temp2?: string;
-  Temp3?: string;
-  Temp4?: string;
-  Temp5?: string;
-  GOE?: string;
-  GOENum?: number;
-  Strength?: string;
-  StrengthNum?: number;
-  ClimbingNum?: number;
-  BalancingNum?: number;
-  StoopingNum?: number;
-  KneelingNum?: number;
-  CrouchingNum?: number;
-  CrawlingNum?: number;
-  ReachingNum?: number;
-  HandlingNum?: number;
-  FingeringNum?: number;
-  FeelingNum?: number;
-  TalkingNum?: number;
-  HearingNum?: number;
-  TastingNum?: number;
-  NearAcuityNum?: number;
-  FarAcuityNum?: number;
-  DepthNum?: number;
-  AccommodationNum?: number;
-  ColorVisionNum?: number;
-  FieldVisionNum?: number;
-  WeatherNum?: number;
-  ColdNum?: number;
-  HeatNum?: number;
-  WetNum?: number;
-  NoiseNum?: number;
-  VibrationNum?: number;
-  AtmosphereNum?: number;
-  MovingNum?: number;
-  ElectricityNum?: number;
-  HeightNum?: number;
-  RadiationNum?: number;
-  ExplosionNum?: number;
-  ToxicNum?: number;
-  OtherNum?: number;
-  Title: string;
-  AltTitles?: string;
-  CompleteTitle?: string;
-  Industry?: string;
-  Definitions?: string;
-  GOE1?: string;
-  GOE2?: string;
-  GOE3?: string;
-  WField1Short?: string;
-  WField2Short?: string;
-  WField3Short?: string;
-  MPSMS1Short?: string;
-  MPSMS2Short?: string;
-  MPSMS3Short?: string;
-  OccGroup?: string;
-}
-
-export type AdvancedSearchParams = Partial<Omit<APIJobData, 'Ncode' | 'Code' | 'DLU'>>;
-
-export type StringifyLevels<T> = {
-  [K in keyof T]: T[K] extends number ? string : T[K];
-};
-
-// FrontendJobData: Converts all number properties in APIJobData to strings
-// This type is used for frontend representation where all values are strings
-export type FrontendJobData = StringifyLevels<APIJobData>;
-
-export type ApiSortField = 'SVPNum' | 'Title' | 'Code' | 'Strength';

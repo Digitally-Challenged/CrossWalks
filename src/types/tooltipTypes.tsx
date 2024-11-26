@@ -1,0 +1,1 @@
+export type TooltipKey = 'Strength' | 'SVP' | 'WorkerFunction' | 'GED' | 'GOE' | 'FrequencyLevel' | 'Aptitude' | 'Temperament' | 'AptitudeLevel';
