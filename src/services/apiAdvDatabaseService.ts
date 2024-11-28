@@ -1,6 +1,12 @@
 import axios from 'axios';
 import { z } from 'zod';
-import { JobData, APIResponse } from '../types/job';
+import { JobData } from '../types/job';
+
+interface APIResponse<T> {
+  status: 'success' | 'error';
+  message?: string;
+  results?: T[];
+}
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://occuguru-production.up.railway.app';
 const SEARCH_ENDPOINT = '/v2/advanced-search';
@@ -62,6 +68,11 @@ export const advancedSearchJobs = async (
   params: AdvancedSearchParams, 
   queryParams: SearchQueryParams = { limit: 20, sort_field: 'Title', sort_order: 'asc' }
 ): Promise<JobData[]> => {
+  console.log('🔍 Advanced Search Request:', {
+    filters: params,
+    queryParams
+  });
+
   try {
     const response = await axios.post<APIResponse<JobData>>(
       `${API_BASE_URL}${SEARCH_ENDPOINT}`,
@@ -69,15 +80,27 @@ export const advancedSearchJobs = async (
       { params: queryParams }
     );
 
+    console.log('✅ Advanced Search Response:', {
+      status: response.data.status,
+      resultCount: response.data.results?.length || 0
+    });
+
     if (response.data.status === 'error') {
+      console.error('❌ API Error:', response.data.message);
       throw new Error(response.data.message || 'An error occurred while performing advanced search');
     }
 
     return response.data.results || [];
   } catch (error) {
     if (axios.isAxiosError(error)) {
+      console.error('❌ Axios Error:', {
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        message: error.message
+      });
       throw new Error(`Failed to fetch search results: ${error.response?.status} ${error.response?.statusText}`);
     }
+    console.error('❌ Unexpected Error:', error);
     throw new Error('An unexpected error occurred');
   }
 };
@@ -104,6 +127,8 @@ export const convertStrengthToDatabaseValue = (value: string): string => {
 };
 
 export const prepareAdvancedSearchParams = (uiParams: any): AdvancedSearchParams => {
+  console.log('🔧 Preparing Advanced Search Params:', uiParams);
+  
   const dbParams: AdvancedSearchParams = {};
 
   if (uiParams.title) dbParams.Title = uiParams.title;
@@ -137,6 +162,7 @@ export const prepareAdvancedSearchParams = (uiParams: any): AdvancedSearchParams
     if (uiParams.generalEducationalDevelopment.language) dbParams.GEDL = parseInt(uiParams.generalEducationalDevelopment.language);
   }
 
+  console.log('✨ Prepared Database Params:', dbParams);
   return dbParams;
 };
 

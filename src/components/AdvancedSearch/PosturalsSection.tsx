@@ -8,11 +8,18 @@ import { renderOptions } from '../../utils/helpers';
 
 interface PosturalsSectionProps {
   posturals: AdvancedSearchFilters['posturals'];
-  onUpdate: (field: string, value: UIFrequencyDisplay) => void;
+  setPosturals: (value: AdvancedSearchFilters['posturals']) => void;
 }
 
-const PosturalsSection: React.FC<PosturalsSectionProps> = ({ posturals, onUpdate }) => {
+const PosturalsSection: React.FC<PosturalsSectionProps> = ({ posturals, setPosturals }) => {
   const frequencyOptions = Object.values(UI_FREQUENCY_DISPLAY) as UIFrequencyDisplay[];
+
+  const handleUpdate = (field: string, value: UIFrequencyDisplay) => {
+    setPosturals({
+      ...posturals,
+      [field]: value
+    });
+  };
 
   return (
     <section className="space-y-4">
@@ -24,7 +31,7 @@ const PosturalsSection: React.FC<PosturalsSectionProps> = ({ posturals, onUpdate
             {renderOptions(
               frequencyOptions,
               value,
-              (newValue) => onUpdate(field, newValue as UIFrequencyDisplay)
+              (newValue) => handleUpdate(field, newValue as UIFrequencyDisplay)
             )}
           </div>
         ))}

@@ -1,7 +1,10 @@
 export { default } from './AdvancedSearch';
-export * from './BasicInfo';
-export * from './PosturalsSection';
-export * from './ManipulativeSection';
-export * from './SensorySection';
-export * from './VisualSection';
-export * from './WorkersFunctionSection';
+export { default as BasicInfo } from './BasicInfo';
+export { default as PosturalsSection } from './PosturalsSection';
+export { default as ManipulativeSection } from './ManipulativeSection';
+export { default as SensorySection } from './SensorySection';
+export { default as VisualSection } from './VisualSection';
+export { default as WorkerFunctionsSection } from './WorkersFunctionSection';
+export { default as EnvironmentalSection } from './EnvironmentalSection';
+export { default as GEDSection } from './GEDSection';
+export * from './constants';

@@ -1,5 +1,7 @@
 export type FrequencyLevel = 'Not Present' | 'Occasionally' | 'Frequently' | 'Constantly';
-export type StrengthLevel = 'Sedentary' | 'Light' | 'Medium' | 'Heavy' | 'Very Heavy';
+export type StrengthFullName = 'Sedentary' | 'Light' | 'Medium' | 'Heavy' | 'Very Heavy';
+export type StrengthAbbrev = 'Sed' | 'Lt' | 'Med' | 'Hvy' | 'V Hvy';
+export type StrengthLevel = StrengthFullName | StrengthAbbrev;
 export type SVPLevel = '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9';
 export type GEDLevel = '1' | '2' | '3' | '4' | '5' | '6';
 export type WorkerFunctionLevel = '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8';
@@ -242,13 +244,18 @@ export interface AdvancedSearchFilters {
     math: GEDLevel | '';
     language: GEDLevel | '';
   };
+  ged: {
+    reasoning: string;
+    math: string;
+    language: string;
+  };
 }
 
 export const UI_FREQUENCY_DISPLAY = {
-  'Not Present': 'NP',
-  'Occasionally': 'Occ.',
-  'Frequently': 'Freq.',
-  'Constantly': 'Const.'
+  'Not Present': 'Not Present',
+  'Occasionally': 'Occasionally',
+  'Frequently': 'Frequently',
+  'Constantly': 'Constantly'
 } as const;
 
 export const UI_STRENGTH_DISPLAY = {
@@ -272,4 +279,66 @@ export interface AdvancedSearchParams extends SearchParams {
   environmental?: Record<string, FrequencyLevel>;
   workerFunctions?: Record<string, WorkerFunctionLevel>;
   generalEducationalDevelopment?: Record<string, GEDLevel>;
+}
+
+export interface APIJobData {
+  Title: string;
+  Code: string;
+  Industry?: string;
+  AltTitles?: string;
+  GOE?: string;
+  SVPNum?: number;
+  Definitions?: string;
+  Strength?: string;
+  ClimbingNum?: number;
+  BalancingNum?: number;
+  StoopingNum?: number;
+  KneelingNum?: number;
+  CrouchingNum?: number;
+  CrawlingNum?: number;
+  ReachingNum?: number;
+  HandlingNum?: number;
+  FingeringNum?: number;
+  FeelingNum?: number;
+  TalkingNum?: number;
+  HearingNum?: number;
+  TastingNum?: number;
+  NearAcuityNum?: number;
+  FarAcuityNum?: number;
+  DepthNum?: number;
+  AccommodationNum?: number;
+  ColorVisionNum?: number;
+  FieldVisionNum?: number;
+  WeatherNum?: number;
+  ColdNum?: number;
+  HeatNum?: number;
+  WetNum?: number;
+  NoiseNum?: number;
+  VibrationNum?: number;
+  AtmosphereNum?: number;
+  MovingNum?: number;
+  ElectricityNum?: number;
+  HeightNum?: number;
+  RadiationNum?: number;
+  ExplosionNum?: number;
+  ToxicNum?: number;
+  OtherNum?: number;
+  GEDR?: number;
+  GEDM?: number;
+  GEDL?: number;
+  WFData?: number;
+  WFDataSig?: string;
+  WFPeople?: number;
+  WFPeopleSig?: string;
+  WFThings?: number;
+  WFThingsSig?: string;
+  WField1?: string;
+  WField1Short?: string;
+  MPSMS1?: string;
+  MPSMS1Short?: string;
+  Temp1?: string;
+  Temp2?: string;
+  Temp3?: string;
+  Temp4?: string;
+  Temp5?: string;
 }

@@ -1,33 +1,19 @@
-import React, { useCallback } from 'react';
+import React from 'react';
 import { CloudLightning, HelpCircle } from 'lucide-react';
+import { 
+  AdvancedSearchFilters, 
+  UIFrequencyDisplay, 
+  UI_FREQUENCY_DISPLAY 
+} from '../../types/job';
 import { renderOptions } from '../../utils/helpers';
-import { FrequencyLevel } from '../../types/job';
 import { Tooltip } from '../ui/ToolTip';
 
-interface EnvironmentalConditions {
-  weather: FrequencyLevel | '';
-  extremeCold: FrequencyLevel | '';
-  extremeHeat: FrequencyLevel | '';
-  wet: FrequencyLevel | '';
-  noise: FrequencyLevel | '';
-  vibration: FrequencyLevel | '';
-  atmosphericConditions: FrequencyLevel | '';
-  movingMechanicalParts: FrequencyLevel | '';
-  electricShock: FrequencyLevel | '';
-  highPlaces: FrequencyLevel | '';
-  radiation: FrequencyLevel | '';
-  explosives: FrequencyLevel | '';
-  toxicChemicals: FrequencyLevel | '';
-  other: FrequencyLevel | '';
-}
-
 interface EnvironmentalSectionProps {
-  environmental: EnvironmentalConditions;
-  setEnvironmental: (value: EnvironmentalConditions) => void;
-  disabled?: boolean;
+  environmental: AdvancedSearchFilters['environmental'];
+  setEnvironmental: (value: AdvancedSearchFilters['environmental']) => void;
 }
 
-const ENVIRONMENTAL_LABELS: Record<keyof EnvironmentalConditions, { label: string; description: string }> = {
+const ENVIRONMENTAL_LABELS = {
   weather: {
     label: 'Weather',
     description: 'Exposure to outside weather conditions'
@@ -86,26 +72,18 @@ const ENVIRONMENTAL_LABELS: Record<keyof EnvironmentalConditions, { label: strin
   }
 } as const;
 
-const FREQUENCY_OPTIONS: FrequencyLevel[] = [
-  'Not Present',
-  'Occasionally',
-  'Frequently',
-  'Constantly'
-];
-
-export const EnvironmentalSection: React.FC<EnvironmentalSectionProps> = ({ 
+const EnvironmentalSection: React.FC<EnvironmentalSectionProps> = ({ 
   environmental, 
-  setEnvironmental,
-  disabled = false
+  setEnvironmental 
 }) => {
-  const handleUpdate = useCallback((key: keyof EnvironmentalConditions, newValue: FrequencyLevel | '') => {
-    if (!disabled) {
-      setEnvironmental({
-        ...environmental,
-        [key]: newValue
-      });
-    }
-  }, [setEnvironmental, environmental, disabled]);
+  const frequencyOptions = Object.values(UI_FREQUENCY_DISPLAY) as UIFrequencyDisplay[];
+
+  const handleUpdate = (field: string, value: UIFrequencyDisplay) => {
+    setEnvironmental({
+      ...environmental,
+      [field]: value
+    });
+  };
 
   return (
     <div className="mb-6">
@@ -114,14 +92,14 @@ export const EnvironmentalSection: React.FC<EnvironmentalSectionProps> = ({
         <span className="ml-2">Environmental Conditions</span>
       </h3>
       <div className="space-y-4">
-        {(Object.entries(ENVIRONMENTAL_LABELS) as Array<[keyof EnvironmentalConditions, { label: string; description: string }]>).map(([key, { label, description }]) => (
-          <div key={key} className="group">
+        {Object.entries(environmental).map(([field, value]) => (
+          <div key={field} className="group">
             <div className="flex items-center mb-2">
               <label className="text-sm font-medium text-gray-300">
-                {label}
+                {ENVIRONMENTAL_LABELS[field as keyof typeof ENVIRONMENTAL_LABELS]?.label}
               </label>
               <Tooltip 
-                content={description}
+                content={ENVIRONMENTAL_LABELS[field as keyof typeof ENVIRONMENTAL_LABELS]?.description}
                 position="right"
                 delay={0.2}
               >
@@ -129,9 +107,9 @@ export const EnvironmentalSection: React.FC<EnvironmentalSectionProps> = ({
               </Tooltip>
             </div>
             {renderOptions(
-              FREQUENCY_OPTIONS,
-              environmental[key] || null,
-              (newValue: string) => handleUpdate(key, newValue as FrequencyLevel | '')
+              frequencyOptions,
+              value,
+              (newValue) => handleUpdate(field, newValue as UIFrequencyDisplay)
             )}
           </div>
         ))}

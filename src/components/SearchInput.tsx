@@ -1,5 +1,4 @@
 import { Search, X } from 'lucide-react';
-import { useState } from 'react';
 import type { SearchColumn } from '../types/job';
 
 interface SearchInputProps {
@@ -7,7 +6,6 @@ interface SearchInputProps {
   onChange: (value: string) => void;
   onModeChange: (mode: SearchColumn) => void;
   searchColumn: SearchColumn;
-  isLoading?: boolean;
 }
 
 export function SearchInput({
@@ -15,10 +13,7 @@ export function SearchInput({
   onChange,
   onModeChange,
   searchColumn,
-  isLoading,
 }: SearchInputProps) {
-  const [isFocused, setIsFocused] = useState(false);
-
   return (
     <div className="w-full max-w-2xl mx-auto">
       <div className="relative">
@@ -29,15 +24,15 @@ export function SearchInput({
           type="text"
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          onFocus={() => setIsFocused(true)}
-          onBlur={() => setIsFocused(false)}
           className="block w-full pl-10 pr-12 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           placeholder={`Search by ${searchColumn.toLowerCase()}...`}
+          aria-label={`Search by ${searchColumn.toLowerCase()}`}
         />
         {value && (
           <button
             onClick={() => onChange('')}
             className="absolute inset-y-0 right-0 pr-3 flex items-center"
+            aria-label="Clear search"
           >
             <X className="h-5 w-5 text-gray-400 hover:text-gray-600" />
           </button>

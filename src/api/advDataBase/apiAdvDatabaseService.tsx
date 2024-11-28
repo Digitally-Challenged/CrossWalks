@@ -1,166 +1,436 @@
 import axios from 'axios';
 import { z } from 'zod';
-import { JobData, APIResponse } from '../types/job';
+import { jobDataSchema } from '../schemas';
+import { mapAPIJobDataToJobData } from '../mappers';
+import { handleAPIError } from '../errors';
+import type { JobData } from '../../types/job';
 
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://occuguru-production.up.railway.app';
-const SEARCH_ENDPOINT = '/v2/advanced-search';
+const API_BASE_URL = 
+  (import.meta.env?.VITE_API_BASE_URL as string) || 
+  (window.env?.REACT_APP_API_BASE_URL as string) || 
+  'https://occuguru-production.up.railway.app';
 
-const advancedSearchParamsSchema = z.object({
-  Title: z.string().optional(),
-  Strength: z.string().optional(),
-  SVPNum: z.number().min(1).max(9).optional(),
-  ClimbingNum: z.number().min(1).max(4).optional(),
-  BalancingNum: z.number().min(1).max(4).optional(),
-  StoopingNum: z.number().min(1).max(4).optional(),
-  KneelingNum: z.number().min(1).max(4).optional(),
-  CrouchingNum: z.number().min(1).max(4).optional(),
-  CrawlingNum: z.number().min(1).max(4).optional(),
-  ReachingNum: z.number().min(1).max(4).optional(),
-  HandlingNum: z.number().min(1).max(4).optional(),
-  FingeringNum: z.number().min(1).max(4).optional(),
-  FeelingNum: z.number().min(1).max(4).optional(),
-  TalkingNum: z.number().min(1).max(4).optional(),
-  HearingNum: z.number().min(1).max(4).optional(),
-  TastingNum: z.number().min(1).max(4).optional(),
-  NearAcuityNum: z.number().min(1).max(4).optional(),
-  FarAcuityNum: z.number().min(1).max(4).optional(),
-  DepthNum: z.number().min(1).max(4).optional(),
-  AccommodationNum: z.number().min(1).max(4).optional(),
-  ColorVisionNum: z.number().min(1).max(4).optional(),
-  FieldVisionNum: z.number().min(1).max(4).optional(),
-  WeatherNum: z.number().min(1).max(4).optional(),
-  ColdNum: z.number().min(1).max(4).optional(),
-  HeatNum: z.number().min(1).max(4).optional(),
-  WetNum: z.number().min(1).max(4).optional(),
-  NoiseNum: z.number().min(1).max(5).optional(),
-  VibrationNum: z.number().min(1).max(4).optional(),
-  AtmosphereNum: z.number().min(1).max(4).optional(),
-  MovingNum: z.number().min(1).max(4).optional(),
-  ElectricityNum: z.number().min(1).max(4).optional(),
-  HeightNum: z.number().min(1).max(4).optional(),
-  RadiationNum: z.number().min(1).max(4).optional(),
-  ExplosionNum: z.number().min(1).max(4).optional(),
-  ToxicNum: z.number().min(1).max(4).optional(),
-  OtherNum: z.number().min(1).max(4).optional(),
-  WFData: z.number().min(0).max(8).optional(),
-  WFPeople: z.number().min(0).max(8).optional(),
-  WFThings: z.number().min(0).max(8).optional(),
-  GEDR: z.number().min(1).max(6).optional(),
-  GEDM: z.number().min(1).max(6).optional(),
-  GEDL: z.number().min(1).max(6).optional(),
+const advancedApi = axios.create({
+  baseURL: API_BASE_URL,
+  headers: {
+    'Content-Type': 'application/json',
+  },
 });
 
+// Define the internal filter types
+interface InternalFilters {
+  title?: string;
+  strength?: string;
+  svp?: string;
+  posturals?: {
+    climbing?: string;
+    balancing?: string;
+    stooping?: string;
+    kneeling?: string;
+    crouching?: string;
+    crawling?: string;
+  };
+  manipulative?: {
+    reaching?: string;
+    handling?: string;
+    fingering?: string;
+    feeling?: string;
+  };
+  sensory?: {
+    talking?: string;
+    hearing?: string;
+    tasteSmell?: string;
+  };
+  visual?: {
+    nearAcuity?: string;
+    farAcuity?: string;
+    depthPerception?: string;
+    accommodation?: string;
+    colorVision?: string;
+    fieldOfVision?: string;
+  };
+  environmental?: {
+    weather?: string;
+    extremeCold?: string;
+    extremeHeat?: string;
+    wet?: string;
+    noise?: string;
+    vibration?: string;
+    atmosphericConditions?: string;
+    movingMechanicalParts?: string;
+    electricShock?: string;
+    highPlaces?: string;
+    radiation?: string;
+    explosives?: string;
+    toxicChemicals?: string;
+    other?: string;
+  };
+  ged?: {
+    reasoning?: string;
+    math?: string;
+    language?: string;
+  };
+  workerFunctions?: {
+    data?: string;
+    people?: string;
+    things?: string;
+  };
+}
+
+// Define the API request params type
+export interface APIAdvancedSearchParams {
+  Title?: string;
+  Strength?: string;
+  SVPNum?: number;
+  ClimbingNum?: number;
+  BalancingNum?: number;
+  StoopingNum?: number;
+  KneelingNum?: number;
+  CrouchingNum?: number;
+  CrawlingNum?: number;
+  ReachingNum?: number;
+  HandlingNum?: number;
+  FingeringNum?: number;
+  FeelingNum?: number;
+  TalkingNum?: number;
+  HearingNum?: number;
+  TastingNum?: number;
+  NearAcuityNum?: number;
+  FarAcuityNum?: number;
+  DepthNum?: number;
+  AccommodationNum?: number;
+  ColorVisionNum?: number;
+  FieldVisionNum?: number;
+  WeatherNum?: number;
+  ColdNum?: number;
+  HeatNum?: number;
+  WetNum?: number;
+  NoiseNum?: number;
+  VibrationNum?: number;
+  AtmosphereNum?: number;
+  MovingNum?: number;
+  ElectricityNum?: number;
+  HeightNum?: number;
+  RadiationNum?: number;
+  ExplosionNum?: number;
+  ToxicNum?: number;
+  OtherNum?: number;
+  GEDR?: number;
+  GEDM?: number;
+  GEDL?: number;
+  WFData?: number;
+  WFPeople?: number;
+  WFThings?: number;
+}
+
+// Define the Zod schema for validation
+export const advancedSearchParamsSchema = z.object({
+  Title: z.string().optional(),
+  Strength: z.string().optional(),
+  SVPNum: z.number().optional(),
+  ClimbingNum: z.number().optional(),
+  BalancingNum: z.number().optional(),
+  StoopingNum: z.number().optional(),
+  KneelingNum: z.number().optional(),
+  CrouchingNum: z.number().optional(),
+  CrawlingNum: z.number().optional(),
+  ReachingNum: z.number().optional(),
+  HandlingNum: z.number().optional(),
+  FingeringNum: z.number().optional(),
+  FeelingNum: z.number().optional(),
+  TalkingNum: z.number().optional(),
+  HearingNum: z.number().optional(),
+  TastingNum: z.number().optional(),
+  NearAcuityNum: z.number().optional(),
+  FarAcuityNum: z.number().optional(),
+  DepthNum: z.number().optional(),
+  AccommodationNum: z.number().optional(),
+  ColorVisionNum: z.number().optional(),
+  FieldVisionNum: z.number().optional(),
+  WeatherNum: z.number().optional(),
+  ColdNum: z.number().optional(),
+  HeatNum: z.number().optional(),
+  WetNum: z.number().optional(),
+  NoiseNum: z.number().optional(),
+  VibrationNum: z.number().optional(),
+  AtmosphereNum: z.number().optional(),
+  MovingNum: z.number().optional(),
+  ElectricityNum: z.number().optional(),
+  HeightNum: z.number().optional(),
+  RadiationNum: z.number().optional(),
+  ExplosionNum: z.number().optional(),
+  ToxicNum: z.number().optional(),
+  OtherNum: z.number().optional(),
+  GEDR: z.number().optional(),
+  GEDM: z.number().optional(),
+  GEDL: z.number().optional(),
+  WFData: z.number().optional(),
+  WFPeople: z.number().optional(),
+  WFThings: z.number().optional()
+});
+
+// Use the schema to derive the type
 export type AdvancedSearchParams = z.infer<typeof advancedSearchParamsSchema>;
 
-interface SearchQueryParams {
-  limit?: number;
+export interface SearchQueryParams {
+  limit: number;
+  offset: number;
   sort_field?: string;
   sort_order?: 'asc' | 'desc';
 }
 
+export interface SearchResponse {
+  results: JobData[];
+  total_count: number;
+  limit: number;
+  offset: number;
+}
+
 export const advancedSearchJobs = async (
-  params: AdvancedSearchParams, 
-  queryParams: SearchQueryParams = { limit: 20, sort_field: 'Title', sort_order: 'asc' }
-): Promise<JobData[]> => {
-  console.log('Starting advancedSearchJobs with params:', params, 'and queryParams:', queryParams);
+  searchParams: AdvancedSearchParams,
+  queryParams: SearchQueryParams
+): Promise<SearchResponse> => {
+  console.group('🔍 Advanced Search API Call');
+  console.log('Search Params:', searchParams);
+  console.log('Query Params:', queryParams);
+
   try {
-    const response = await axios.post<APIResponse<JobData>>(
-      `${API_BASE_URL}${SEARCH_ENDPOINT}`,
-      { filters: params },
-      { params: queryParams }
+    // Validate search params against schema
+    const validatedParams = advancedSearchParamsSchema.parse(searchParams);
+
+    // Make API request
+    const { data } = await advancedApi.post('/v2/advanced-search', 
+      validatedParams,
+      { 
+        params: {
+          limit: queryParams.limit,
+          offset: queryParams.offset,
+          sort_field: queryParams.sort_field || 'Title',
+          sort_order: queryParams.sort_order || 'asc'
+        }
+      }
     );
+
+    console.log('📥 Advanced Search Raw Response:', data);
+
+    // Validate response data
+    const validatedResults = z.array(jobDataSchema).parse(data.results);
+    const transformedResults = validatedResults.map(mapAPIJobDataToJobData);
+
+    console.log('✅ Advanced Search Success');
+    console.groupEnd();
     
-    console.log('API response received:', response.data);
-
-    if (response.data.status === 'error') {
-      console.error('API returned an error:', response.data.message);
-      throw new Error(response.data.message || 'An error occurred while performing advanced search');
-    }
-
-    console.log('Returning search results:', response.data.results);
-    return response.data.results || [];
+    return {
+      results: transformedResults,
+      total_count: data.total_count || 0,
+      limit: data.limit,
+      offset: data.offset
+    };
   } catch (error) {
-    if (axios.isAxiosError(error)) {
-      console.error('Axios error:', error.response?.data, error.response?.status, error.response?.headers);
-      throw new Error(`Failed to fetch search results: ${error.response?.status} ${error.response?.statusText}`);
-    }
-    console.error('Unexpected error:', error);
-    throw new Error('An unexpected error occurred');
+    console.error('❌ Advanced Search Error:', error);
+    console.groupEnd();
+    return handleAPIError(error);
   }
 };
 
-export const convertFrequencyToDatabaseValue = (value: string): number => {
-  console.log('Converting frequency:', value);
-  const frequencyMap: Record<string, number> = {
-    'Not Present': 1,
-    'Occasionally': 2,
-    'Frequently': 3,
-    'Constantly': 4
+// Helper function to convert UI frequency values to DB numbers
+export const frequencyToNumber = (freq: string | undefined): number | undefined => {
+  if (!freq) return undefined;
+  const map: Record<string, number> = {
+    'N': 1, // Not Present
+    'O': 2, // Occasionally
+    'F': 3, // Frequently
+    'C': 4  // Constantly
   };
-  const result = frequencyMap[value] || 0;
-  console.log('Converted frequency result:', result);
-  return result;
+  return map[freq];
 };
 
-export const convertStrengthToDatabaseValue = (value: string): string => {
-  console.log('Converting strength:', value);
-  const strengthMap: Record<string, string> = {
-    'S': 'S',
-    'L': 'L',
-    'M': 'M',
-    'H': 'H',
-    'V': 'V'
+// Helper function to convert UI strength values to DB values
+export const strengthToAPIValue = (strength: string | undefined): string | undefined => {
+  if (!strength) return undefined;
+  const map: Record<string, string> = {
+    'S': 'Sedentary',
+    'L': 'Light',
+    'M': 'Medium',
+    'H': 'Heavy',
+    'V': 'Very Heavy'
   };
-  const result = strengthMap[value] || '';
-  console.log('Converted strength result:', result);
-  return result;
+  return map[strength] || strength;
 };
 
-export const prepareAdvancedSearchParams = (uiParams: any): AdvancedSearchParams => {
-  console.log('Preparing advanced search params from UI params:', uiParams);
-  const dbParams: AdvancedSearchParams = {};
+// Helper function to convert noise levels
+export const noiseToNumber = (level: string | undefined): number | undefined => {
+  if (!level) return undefined;
+  const map: Record<string, number> = {
+    'VQ': 1, // Very Quiet
+    'Q': 2,  // Quiet
+    'M': 3,  // Moderate
+    'L': 4,  // Loud
+    'VL': 5  // Very Loud
+  };
+  return map[level];
+};
 
-  if (uiParams.title) dbParams.Title = uiParams.title;
-  if (uiParams.strength) dbParams.Strength = convertStrengthToDatabaseValue(uiParams.strength);
-  if (uiParams.svp) dbParams.SVPNum = parseInt(uiParams.svp);
+// Helper function to prepare search parameters
+export const prepareAdvancedSearchParams = (filters: InternalFilters): AdvancedSearchParams => {
+  const params: AdvancedSearchParams = {};
 
-  const mapFields = (source: any, target: any, prefix: string, converter: (val: string) => number) => {
-    Object.entries(source).forEach(([key, value]) => {
-      if (value) {
-        const dbKey = `${prefix}${key.charAt(0).toUpperCase() + key.slice(1)}Num`;
-        target[dbKey] = converter(value as string);
-        console.log(`Mapped field ${key} to ${dbKey}:`, target[dbKey]);
+  // Title filter - only add if non-empty string
+  if (filters.title?.trim()) {
+    params.Title = filters.title.trim();
+  }
+
+  // Strength filter - only add if valid value
+  if (filters.strength && filters.strength !== 'ANY') {
+    params.Strength = filters.strength;
+  }
+
+  // SVP filter - only add if valid number
+  if (filters.svp && filters.svp !== 'ANY') {
+    params.SVPNum = parseInt(filters.svp, 10);
+  }
+
+  // Postural activities - only add if frequency is specified
+  if (filters.posturals) {
+    Object.entries(filters.posturals).forEach(([key, value]) => {
+      if (value && value !== 'ANY') {
+        const numValue = frequencyToNumber(value);
+        if (numValue !== undefined) {
+          switch (key) {
+            case 'climbing': params.ClimbingNum = numValue; break;
+            case 'balancing': params.BalancingNum = numValue; break;
+            case 'stooping': params.StoopingNum = numValue; break;
+            case 'kneeling': params.KneelingNum = numValue; break;
+            case 'crouching': params.CrouchingNum = numValue; break;
+            case 'crawling': params.CrawlingNum = numValue; break;
+          }
+        }
       }
     });
-  };
-
-  mapFields(uiParams.posturals, dbParams, '', convertFrequencyToDatabaseValue);
-  mapFields(uiParams.manipulative, dbParams, '', convertFrequencyToDatabaseValue);
-  mapFields(uiParams.sensory, dbParams, '', convertFrequencyToDatabaseValue);
-  mapFields(uiParams.visual, dbParams, '', convertFrequencyToDatabaseValue);
-  mapFields(uiParams.environmental, dbParams, '', convertFrequencyToDatabaseValue);
-
-  if (uiParams.workerFunctions) {
-    if (uiParams.workerFunctions.data) dbParams.WFData = parseInt(uiParams.workerFunctions.data);
-    if (uiParams.workerFunctions.people) dbParams.WFPeople = parseInt(uiParams.workerFunctions.people);
-    if (uiParams.workerFunctions.things) dbParams.WFThings = parseInt(uiParams.workerFunctions.things);
   }
 
-  if (uiParams.generalEducationalDevelopment) {
-    if (uiParams.generalEducationalDevelopment.reasoning) dbParams.GEDR = parseInt(uiParams.generalEducationalDevelopment.reasoning);
-    if (uiParams.generalEducationalDevelopment.math) dbParams.GEDM = parseInt(uiParams.generalEducationalDevelopment.math);
-    if (uiParams.generalEducationalDevelopment.language) dbParams.GEDL = parseInt(uiParams.generalEducationalDevelopment.language);
+  // Manipulative activities
+  if (filters.manipulative) {
+    Object.entries(filters.manipulative).forEach(([key, value]) => {
+      if (value && value !== 'ANY') {
+        const numValue = frequencyToNumber(value);
+        if (numValue !== undefined) {
+          switch (key) {
+            case 'reaching': params.ReachingNum = numValue; break;
+            case 'handling': params.HandlingNum = numValue; break;
+            case 'fingering': params.FingeringNum = numValue; break;
+            case 'feeling': params.FeelingNum = numValue; break;
+          }
+        }
+      }
+    });
   }
 
-  console.log('Prepared database params:', dbParams);
-  return dbParams;
+  // Sensory activities
+  if (filters.sensory) {
+    Object.entries(filters.sensory).forEach(([key, value]) => {
+      if (value && value !== 'ANY') {
+        const numValue = frequencyToNumber(value);
+        if (numValue !== undefined) {
+          switch (key) {
+            case 'talking': params.TalkingNum = numValue; break;
+            case 'hearing': params.HearingNum = numValue; break;
+            case 'tasteSmell': params.TastingNum = numValue; break;
+          }
+        }
+      }
+    });
+  }
+
+  // Visual activities
+  if (filters.visual) {
+    Object.entries(filters.visual).forEach(([key, value]) => {
+      if (value && value !== 'ANY') {
+        const numValue = frequencyToNumber(value);
+        if (numValue !== undefined) {
+          switch (key) {
+            case 'nearAcuity': params.NearAcuityNum = numValue; break;
+            case 'farAcuity': params.FarAcuityNum = numValue; break;
+            case 'depthPerception': params.DepthNum = numValue; break;
+            case 'accommodation': params.AccommodationNum = numValue; break;
+            case 'colorVision': params.ColorVisionNum = numValue; break;
+            case 'fieldOfVision': params.FieldVisionNum = numValue; break;
+          }
+        }
+      }
+    });
+  }
+
+  // Environmental conditions
+  if (filters.environmental) {
+    Object.entries(filters.environmental).forEach(([key, value]) => {
+      if (value && value !== 'ANY') {
+        const numValue = key === 'noise' ? 
+          noiseToNumber(value) : 
+          frequencyToNumber(value);
+        
+        if (numValue !== undefined) {
+          switch (key) {
+            case 'weather': params.WeatherNum = numValue; break;
+            case 'extremeCold': params.ColdNum = numValue; break;
+            case 'extremeHeat': params.HeatNum = numValue; break;
+            case 'wet': params.WetNum = numValue; break;
+            case 'noise': params.NoiseNum = numValue; break;
+            case 'vibration': params.VibrationNum = numValue; break;
+            case 'atmosphericConditions': params.AtmosphereNum = numValue; break;
+            case 'movingMechanicalParts': params.MovingNum = numValue; break;
+            case 'electricShock': params.ElectricityNum = numValue; break;
+            case 'highPlaces': params.HeightNum = numValue; break;
+            case 'radiation': params.RadiationNum = numValue; break;
+            case 'explosives': params.ExplosionNum = numValue; break;
+            case 'toxicChemicals': params.ToxicNum = numValue; break;
+            case 'other': params.OtherNum = numValue; break;
+          }
+        }
+      }
+    });
+  }
+
+  // GED Requirements
+  if (filters.ged) {
+    Object.entries(filters.ged).forEach(([key, value]) => {
+      if (value && value !== 'ANY') {
+        const numValue = parseInt(value, 10);
+        if (!isNaN(numValue)) {
+          switch (key) {
+            case 'reasoning': params.GEDR = numValue; break;
+            case 'math': params.GEDM = numValue; break;
+            case 'language': params.GEDL = numValue; break;
+          }
+        }
+      }
+    });
+  }
+
+  // Worker Functions
+  if (filters.workerFunctions) {
+    Object.entries(filters.workerFunctions).forEach(([key, value]) => {
+      if (value && value !== 'ANY') {
+        const numValue = parseInt(value, 10);
+        if (!isNaN(numValue)) {
+          switch (key) {
+            case 'data': params.WFData = numValue; break;
+            case 'people': params.WFPeople = numValue; break;
+            case 'things': params.WFThings = numValue; break;
+          }
+        }
+      }
+    });
+  }
+
+  console.log('🔍 Prepared search params:', params);
+  return params;
 };
 
-const apiAdvDatabaseService = {
+export default {
   advancedSearchJobs,
   prepareAdvancedSearchParams,
-  convertFrequencyToDatabaseValue,
-  convertStrengthToDatabaseValue,
+  frequencyToNumber,
+  strengthToAPIValue,
+  noiseToNumber
 };
-
-export default apiAdvDatabaseService;

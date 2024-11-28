@@ -19,7 +19,7 @@ const JobSearch: React.FC<JobSearchProps> = ({ onAdvancedClick }) => {
 
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
 
-  const { data, isLoading, error, fetchNextPage, hasNextPage } = useJobSearch({
+  const { data, isLoading, error, fetchNextPage, hasNextPage, isFetchingNextPage } = useJobSearch({
     search_term: debouncedSearchTerm,
     search_column: searchColumn,
     limit,
@@ -33,6 +33,7 @@ const JobSearch: React.FC<JobSearchProps> = ({ onAdvancedClick }) => {
   }, []);
 
   const handleLoadMore = useCallback(async () => {
+    setPage(prevPage => prevPage + 1);
     await fetchNextPage();
   }, [fetchNextPage]);
 
@@ -54,7 +55,6 @@ const JobSearch: React.FC<JobSearchProps> = ({ onAdvancedClick }) => {
         onChange={setSearchTerm}
         onModeChange={setSearchColumn}
         searchColumn={searchColumn}
-        isLoading={isLoading}
       />
 
       <SearchResults
@@ -65,6 +65,7 @@ const JobSearch: React.FC<JobSearchProps> = ({ onAdvancedClick }) => {
         hasPerformedSearch={Boolean(debouncedSearchTerm)}
         onLoadMore={handleLoadMore}
         hasNextPage={hasNextPage}
+        isFetchingNextPage={isFetchingNextPage}
       />
     </div>
   );

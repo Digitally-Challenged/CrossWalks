@@ -10,6 +10,7 @@ import type { JobData } from '../types/job';
 interface SearchResultsProps {
   jobs: JobData[];
   isLoading: boolean;
+  isFetchingNextPage: boolean;
   error: Error | null;
   onJobSelect: (job: JobData) => void;
   hasPerformedSearch: boolean;
@@ -20,12 +21,22 @@ interface SearchResultsProps {
 const SearchResults: React.FC<SearchResultsProps> = ({
   jobs,
   isLoading,
+  isFetchingNextPage,
   error,
   onJobSelect,
   hasPerformedSearch,
   onLoadMore,
   hasNextPage,
 }) => {
+  console.log('[SearchResults] Rendering with:', {
+    jobsCount: jobs.length,
+    isLoading,
+    isFetchingNextPage,
+    hasNextPage,
+    hasPerformedSearch,
+    error: error?.message
+  });
+
   const itemCount = hasNextPage ? jobs.length + 1 : jobs.length;
 
   const isItemLoaded = useCallback(
@@ -35,8 +46,17 @@ const SearchResults: React.FC<SearchResultsProps> = ({
 
   const loadMoreItems = useCallback(
     () => {
-      if (!hasNextPage) return Promise.resolve();
-      return onLoadMore();
+      console.log('[SearchResults] Loading more items...');
+      if (!hasNextPage) {
+        console.log('[SearchResults] No more items to load');
+        return Promise.resolve();
+      }
+      return onLoadMore().then(() => {
+        console.log('[SearchResults] Successfully loaded more items');
+      }).catch((error) => {
+        console.error('[SearchResults] Error loading more items:', error);
+        throw error;
+      });
     },
     [hasNextPage, onLoadMore]
   );
@@ -44,15 +64,22 @@ const SearchResults: React.FC<SearchResultsProps> = ({
   const Row = useCallback(
     ({ index, style }: { index: number; style: React.CSSProperties }) => {
       if (!isItemLoaded(index)) {
+        console.log('[SearchResults] Rendering loading state for index:', index);
         return (
           <div style={style} className="flex items-center justify-center p-4">
-            <LoadingSpinner size="sm" />
+            <LoadingSpinner 
+              size="sm" 
+              className={isFetchingNextPage ? 'opacity-100' : 'opacity-0'}
+            />
           </div>
         );
       }
 
       const job = jobs[index];
-      if (!job) return null;
+      if (!job) {
+        console.warn('[SearchResults] No job found for index:', index);
+        return null;
+      }
 
       return (
         <div style={style} className="p-2">
@@ -60,7 +87,7 @@ const SearchResults: React.FC<SearchResultsProps> = ({
         </div>
       );
     },
-    [jobs, onJobSelect, isItemLoaded]
+    [jobs, onJobSelect, isItemLoaded, isFetchingNextPage]
   );
 
   if (isLoading && !jobs.length) {
