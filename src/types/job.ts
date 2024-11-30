@@ -1,17 +1,85 @@
+// Basic Types
 export type FrequencyLevel = 'Not Present' | 'Occasionally' | 'Frequently' | 'Constantly';
 export type StrengthFullName = 'Sedentary' | 'Light' | 'Medium' | 'Heavy' | 'Very Heavy';
 export type StrengthAbbrev = 'Sed' | 'Lt' | 'Med' | 'Hvy' | 'V Hvy';
-export type StrengthLevel = StrengthFullName | StrengthAbbrev;
+export type StrengthLevel = StrengthFullName | StrengthAbbrev | null;
 export type SVPLevel = '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9';
 export type GEDLevel = '1' | '2' | '3' | '4' | '5' | '6';
 export type WorkerFunctionLevel = '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8';
 export type AptitudeLevel = '1' | '2' | '3' | '4' | '5';
+export type NoiseLevel = 'Very Quiet' | 'Quiet' | 'Moderate' | 'Loud' | 'Very Loud';
+
+// Search Related Types
 export type SearchMode = 'contains' | 'starts_with' | 'ends_with';
 export type SearchColumn = 'Title' | 'Code';
-
 export type SortOrder = 'asc' | 'desc';
 export type SortByType = 'SVP' | 'titleAsc' | 'titleDesc' | 'codeAsc' | 'codeDesc' | 'SVPNum' | 'Title' | 'Code' | 'Strength';
 
+// Mapping Constants
+export const NUMBER_TO_FREQUENCY: Record<number, FrequencyLevel> = {
+  1: 'Not Present',
+  2: 'Occasionally',
+  3: 'Frequently',
+  4: 'Constantly'
+} as const;
+
+export const FREQUENCY_TO_NUMBER: Record<FrequencyLevel, number> = {
+  'Not Present': 1,
+  'Occasionally': 2,
+  'Frequently': 3,
+  'Constantly': 4
+} as const;
+
+export const NOISE_LEVELS = {
+  'Very Quiet': 1,
+  'Quiet': 2,
+  'Moderate': 3,
+  'Loud': 4,
+  'Very Loud': 5
+} as const;
+
+export const STRENGTH_MAPPINGS = {
+  UI_TO_API: {
+    'Sed': 'Sedentary',
+    'Lt': 'Light',
+    'Med': 'Medium',
+    'Hvy': 'Heavy',
+    'V Hvy': 'Very Heavy'
+  } as const,
+  
+  API_TO_UI: {
+    'Sedentary': 'Sed',
+    'Light': 'Lt',
+    'Medium': 'Med',
+    'Heavy': 'Hvy',
+    'Very Heavy': 'V Hvy'
+  } as const,
+  
+  TO_NUMBER: {
+    'Sedentary': 1,
+    'Light': 2,
+    'Medium': 3,
+    'Heavy': 4,
+    'Very Heavy': 5
+  } as const
+} as const;
+
+export const NUMBER_TO_NOISE: Record<number, NoiseLevel> = {
+  1: 'Very Quiet',
+  2: 'Quiet',
+  3: 'Moderate',
+  4: 'Loud',
+  5: 'Very Loud'
+} as const;
+
+export const UI_FREQUENCY_DISPLAY = {
+  'Not Present': 'Not Present',
+  'Occasionally': 'Occasionally',
+  'Frequently': 'Frequently',
+  'Constantly': 'Constantly'
+} as const;
+
+// Interface Definitions
 export interface SearchParams {
   search_term?: string;
   title_search?: string;
@@ -23,6 +91,118 @@ export interface SearchParams {
   page?: number;
   search_column?: SearchColumn;
   offset?: number;
+}
+
+export interface APIJobData {
+  // Base Information
+  Ncode?: number;
+  DocumentNumber?: string;
+  Code: string;
+  DLU?: number;
+  Title: string;
+  CompleteTitle?: string;
+  Industry?: string;
+  AltTitles?: string;
+  Definitions?: string;
+  
+  // Strength and SVP
+  Strength?: string;
+  StrengthNum?: number;
+  SVPNum?: number;
+  
+  // Worker Functions
+  WFData?: number;
+  WFDataSig?: string;
+  WFPeople?: number;
+  WFPeopleSig?: string;
+  WFThings?: number;
+  WFThingsSig?: string;
+  
+  // GED Requirements
+  GEDR?: number;
+  GEDM?: number;
+  GEDL?: number;
+  
+  // Work Fields
+  WField1?: string;
+  WField1Short?: string;
+  WField2?: string;
+  WField2Short?: string;
+  WField3?: string;
+  WField3Short?: string;
+  
+  // MPSMS Fields
+  MPSMS1?: string;
+  MPSMS1Short?: string;
+  MPSMS2?: string;
+  MPSMS2Short?: string;
+  MPSMS3?: string;
+  MPSMS3Short?: string;
+  
+  // GOE Fields
+  GOE?: string;
+  GOENum?: number;
+  GOE1?: string;
+  GOE2?: string;
+  GOE3?: string;
+  
+  // Frequency-based Fields
+  ClimbingNum?: number;
+  BalancingNum?: number;
+  StoopingNum?: number;
+  KneelingNum?: number;
+  CrouchingNum?: number;
+  CrawlingNum?: number;
+  ReachingNum?: number;
+  HandlingNum?: number;
+  FingeringNum?: number;
+  FeelingNum?: number;
+  TalkingNum?: number;
+  HearingNum?: number;
+  TastingNum?: number;
+  NearAcuityNum?: number;
+  FarAcuityNum?: number;
+  DepthNum?: number;
+  AccommodationNum?: number;
+  ColorVisionNum?: number;
+  FieldVisionNum?: number;
+  WeatherNum?: number;
+  ColdNum?: number;
+  HeatNum?: number;
+  WetNum?: number;
+  NoiseNum?: number;
+  VibrationNum?: number;
+  AtmosphereNum?: number;
+  MovingNum?: number;
+  ElectricityNum?: number;
+  HeightNum?: number;
+  RadiationNum?: number;
+  ExplosionNum?: number;
+  ToxicNum?: number;
+  OtherNum?: number;
+  
+  // Aptitudes
+  AptGenLearn?: number;
+  AptVerbal?: number;
+  AptNumerical?: number;
+  AptSpacial?: number;
+  AptFormPer?: number;
+  AptClericalPer?: number;
+  AptMotor?: number;
+  AptFingerDext?: number;
+  AptManualDext?: number;
+  AptEyeHandCoord?: number;
+  AptColorDisc?: number;
+  
+  // Temperaments
+  Temp1?: string;
+  Temp2?: string;
+  Temp3?: string;
+  Temp4?: string;
+  Temp5?: string;
+  
+  // Additional Fields
+  OccGroup?: string;
 }
 
 export interface JobData {
@@ -71,21 +251,21 @@ export interface JobData {
       readonly colorVision: FrequencyLevel;
       readonly fieldOfVision: FrequencyLevel;
     };
-    environmental: {
-      weather: FrequencyLevel;
-      extremeCold: FrequencyLevel;
-      extremeHeat: FrequencyLevel;
-      wet: FrequencyLevel;
-      noise: string;
-      vibration: FrequencyLevel;
-      atmosphericConditions: FrequencyLevel;
-      movingMechanicalParts: FrequencyLevel;
-      electricShock: FrequencyLevel;
-      highPlaces: FrequencyLevel;
-      radiation: FrequencyLevel;
-      explosives: FrequencyLevel;
-      toxicChemicals: FrequencyLevel;
-      other: FrequencyLevel;
+    readonly environmental: {
+      readonly weather: FrequencyLevel;
+      readonly extremeCold: FrequencyLevel;
+      readonly extremeHeat: FrequencyLevel;
+      readonly wet: FrequencyLevel;
+      readonly noise: string;
+      readonly vibration: FrequencyLevel;
+      readonly atmosphericConditions: FrequencyLevel;
+      readonly movingMechanicalParts: FrequencyLevel;
+      readonly electricShock: FrequencyLevel;
+      readonly highPlaces: FrequencyLevel;
+      readonly radiation: FrequencyLevel;
+      readonly explosives: FrequencyLevel;
+      readonly toxicChemicals: FrequencyLevel;
+      readonly other: FrequencyLevel;
     };
   };
   readonly generalEducationalDevelopment: {
@@ -251,24 +431,6 @@ export interface AdvancedSearchFilters {
   };
 }
 
-export const UI_FREQUENCY_DISPLAY = {
-  'Not Present': 'Not Present',
-  'Occasionally': 'Occasionally',
-  'Frequently': 'Frequently',
-  'Constantly': 'Constantly'
-} as const;
-
-export const UI_STRENGTH_DISPLAY = {
-  'Sedentary': 'Sed',
-  'Light': 'Light',
-  'Medium': 'Med',
-  'Heavy': 'Heavy',
-  'Very Heavy': 'V Hvy'
-} as const;
-
-export type UIFrequencyDisplay = typeof UI_FREQUENCY_DISPLAY[keyof typeof UI_FREQUENCY_DISPLAY];
-export type UIStrengthDisplay = typeof UI_STRENGTH_DISPLAY[keyof typeof UI_STRENGTH_DISPLAY];
-
 export interface AdvancedSearchParams extends SearchParams {
   strength?: StrengthLevel;
   svp?: SVPLevel;
@@ -281,64 +443,16 @@ export interface AdvancedSearchParams extends SearchParams {
   generalEducationalDevelopment?: Record<string, GEDLevel>;
 }
 
-export interface APIJobData {
-  Title: string;
-  Code: string;
-  Industry?: string;
-  AltTitles?: string;
-  GOE?: string;
-  SVPNum?: number;
-  Definitions?: string;
-  Strength?: string;
-  ClimbingNum?: number;
-  BalancingNum?: number;
-  StoopingNum?: number;
-  KneelingNum?: number;
-  CrouchingNum?: number;
-  CrawlingNum?: number;
-  ReachingNum?: number;
-  HandlingNum?: number;
-  FingeringNum?: number;
-  FeelingNum?: number;
-  TalkingNum?: number;
-  HearingNum?: number;
-  TastingNum?: number;
-  NearAcuityNum?: number;
-  FarAcuityNum?: number;
-  DepthNum?: number;
-  AccommodationNum?: number;
-  ColorVisionNum?: number;
-  FieldVisionNum?: number;
-  WeatherNum?: number;
-  ColdNum?: number;
-  HeatNum?: number;
-  WetNum?: number;
-  NoiseNum?: number;
-  VibrationNum?: number;
-  AtmosphereNum?: number;
-  MovingNum?: number;
-  ElectricityNum?: number;
-  HeightNum?: number;
-  RadiationNum?: number;
-  ExplosionNum?: number;
-  ToxicNum?: number;
-  OtherNum?: number;
-  GEDR?: number;
-  GEDM?: number;
-  GEDL?: number;
-  WFData?: number;
-  WFDataSig?: string;
-  WFPeople?: number;
-  WFPeopleSig?: string;
-  WFThings?: number;
-  WFThingsSig?: string;
-  WField1?: string;
-  WField1Short?: string;
-  MPSMS1?: string;
-  MPSMS1Short?: string;
-  Temp1?: string;
-  Temp2?: string;
-  Temp3?: string;
-  Temp4?: string;
-  Temp5?: string;
-}
+// Type guard functions
+export const isValidStrength = (value: unknown): value is StrengthLevel => {
+  if (!value || typeof value !== 'string') return false;
+  return (
+    Object.keys(STRENGTH_MAPPINGS.UI_TO_API).includes(value) ||
+    Object.values(STRENGTH_MAPPINGS.UI_TO_API).includes(value as StrengthFullName)
+  );
+};
+
+export const isValidFrequency = (value: unknown): value is FrequencyLevel => {
+  if (!value || typeof value !== 'string') return false;
+  return Object.keys(FREQUENCY_TO_NUMBER).includes(value as string);
+};

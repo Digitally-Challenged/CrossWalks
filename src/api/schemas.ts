@@ -1,3 +1,4 @@
+
 import { z } from 'zod';
 
 export const jobDataSchema = z.object({

@@ -1,3 +1,4 @@
+
 import type { JobData, APIJobData } from '../types/job';
 
 export function mapAPIJobDataToJobData(apiJob: APIJobData): JobData {

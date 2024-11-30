@@ -8,7 +8,7 @@ import { handleAPIError } from './errors';
 const API_BASE_URL = 
   (import.meta.env?.VITE_API_BASE_URL as string) || 
   (window.env?.REACT_APP_API_BASE_URL as string) || 
-  'https://occuguru-production.up.railway.app';
+  'http://127.0.0.1:8002';  // Update this line
 const BASIC_SEARCH_ENDPOINT = '/search';
 
 // Define the API response types

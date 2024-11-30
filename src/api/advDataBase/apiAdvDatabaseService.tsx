@@ -5,10 +5,18 @@ import { mapAPIJobDataToJobData } from '../mappers';
 import { handleAPIError } from '../errors';
 import type { JobData } from '../../types/job';
 
-const API_BASE_URL = 
-  (import.meta.env?.VITE_API_BASE_URL as string) || 
-  (window.env?.REACT_APP_API_BASE_URL as string) || 
-  'https://occuguru-production.up.railway.app';
+// Define environment variable type
+const getApiBaseUrl = (): string => {
+  const viteUrl = import.meta.env?.VITE_API_BASE_URL;
+  const windowUrl = window.env?.REACT_APP_API_BASE_URL;
+  
+  if (typeof viteUrl === 'string' && viteUrl) return viteUrl;
+  if (typeof windowUrl === 'string' && windowUrl) return windowUrl;
+  
+  return 'http://127.0.0.1:8002';
+};
+
+const API_BASE_URL = getApiBaseUrl();
 
 const advancedApi = axios.create({
   baseURL: API_BASE_URL,
