@@ -1,24 +1,40 @@
 import React from 'react';
-import { Activity } from 'lucide-react';
+import { HelpCircle } from 'lucide-react';
 import { 
   AdvancedSearchFilters, 
-  UIFrequencyDisplay, 
+  FrequencyLevel,
   UI_FREQUENCY_DISPLAY 
 } from '../../types/job';
 import { renderOptions } from '../../utils/helpers';
+import { Tooltip } from '../ui/ToolTip';
 
 interface ManipulativeSectionProps {
   manipulative: AdvancedSearchFilters['manipulative'];
   setManipulative: (value: AdvancedSearchFilters['manipulative']) => void;
 }
 
+const MANIPULATIVE_LABELS = {
+  reaching: {
+    label: "Reaching",
+    description: "Extending hand(s) and arm(s) in any direction"
+  },
+  handling: {
+    label: "Handling",
+    description: "Seizing, holding, grasping, turning, or otherwise working with hand or hands"
+  },
+  fingering: {
+    label: "Fingering",
+    description: "Picking, pinching, or otherwise working with fingers primarily (rather than whole hand)"
+  }
+} as const;
+
 const ManipulativeSection: React.FC<ManipulativeSectionProps> = ({ 
   manipulative, 
   setManipulative 
 }) => {
-  const frequencyOptions = Object.values(UI_FREQUENCY_DISPLAY) as UIFrequencyDisplay[];
+  const frequencyOptions = Object.values(UI_FREQUENCY_DISPLAY);
 
-  const handleUpdate = (field: string, value: UIFrequencyDisplay) => {
+  const handleUpdate = (field: string, value: FrequencyLevel) => {
     setManipulative({
       ...manipulative,
       [field]: value
@@ -26,30 +42,32 @@ const ManipulativeSection: React.FC<ManipulativeSectionProps> = ({
   };
 
   return (
-    <section className="w-full space-y-4">
-      <h2 className="flex items-center text-lg font-medium text-gray-100 mb-4">
-        <Activity className="w-5 h-5 text-blue-500 mr-2" />
-        <span>MANIPULATIVE</span>
-      </h2>
-      <div className="space-y-4">
-        {Object.entries(manipulative).map(([field, value]) => (
-          <div key={field} className="w-full">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium text-gray-300 capitalize">
-                {field}
-              </span>
-            </div>
-            <div className="flex space-x-2">
-              {renderOptions(
-                frequencyOptions,
-                value,
-                (newValue) => handleUpdate(field, newValue as UIFrequencyDisplay)
-              )}
-            </div>
+    <div className="space-y-4">
+      {Object.entries(manipulative).map(([field, value]) => (
+        <div key={field} className="flex items-center">
+          <div className="flex items-center w-48">
+            <span className="text-sm text-gray-300 capitalize">
+              {MANIPULATIVE_LABELS[field as keyof typeof MANIPULATIVE_LABELS]?.label}
+            </span>
+            <Tooltip 
+              content={MANIPULATIVE_LABELS[field as keyof typeof MANIPULATIVE_LABELS]?.description}
+              position="right"
+              delay={0.2}
+            >
+              <HelpCircle className="w-4 h-4 ml-2 text-gray-400 hover:text-gray-300 cursor-help" />
+            </Tooltip>
           </div>
-        ))}
-      </div>
-    </section>
+          <div className="flex-1 flex justify-center gap-2">
+            {renderOptions(
+              frequencyOptions,
+              value,
+              (newValue) => handleUpdate(field, newValue as FrequencyLevel)
+            )}
+          </div>
+          <div className="w-48" />
+        </div>
+      ))}
+    </div>
   );
 };
 

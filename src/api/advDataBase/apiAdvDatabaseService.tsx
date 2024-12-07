@@ -4,6 +4,7 @@ import { jobDataSchema } from '../schemas';
 import { mapAPIJobDataToJobData } from '../mappers';
 import { handleAPIError } from '../errors';
 import type { JobData } from '../../types/job';
+import { debounce } from 'lodash';
 
 // Define environment variable type
 const getApiBaseUrl = (): string => {
@@ -194,7 +195,26 @@ export interface SearchResponse {
   offset: number;
 }
 
-export const advancedSearchJobs = async (
+// Add types for comparison operators
+type ComparisonOperator = 'eq' | 'lte' | 'gte';
+
+interface APIQueryParams {
+  [key: string]: string | number | undefined;
+}
+
+// Create a cache instance
+const searchCache = new Map<string, SearchResponse>();
+
+// Update the API response type to match actual data
+interface APIJobData {
+  Title: string;
+  Code: string;
+  SVPNum: number;
+  // ... other fields
+}
+
+// Update the API call to handle comparison operators separately
+export const advancedSearchJobs = debounce(async (
   searchParams: AdvancedSearchParams,
   queryParams: SearchQueryParams
 ): Promise<SearchResponse> => {
@@ -203,43 +223,60 @@ export const advancedSearchJobs = async (
   console.log('Query Params:', queryParams);
 
   try {
-    // Validate search params against schema
-    const validatedParams = advancedSearchParamsSchema.parse(searchParams);
+    // Transform comparison operators into query parameters
+    const apiQueryParams: APIQueryParams = {
+      limit: queryParams.limit,
+      offset: queryParams.offset,
+      sort_field: queryParams.sort_field || 'Title',
+      sort_order: queryParams.sort_order || 'asc'
+    };
 
-    // Make API request
+    // Create a copy of search params to modify
+    const processedParams = { ...searchParams };
+
+    // Extract comparison operators and add to query params
+    Object.entries(processedParams).forEach(([key, value]) => {
+      if (value && typeof value === 'object' && 'operator' in value) {
+        const { value: numValue, operator } = value as { value: number; operator: ComparisonOperator };
+        apiQueryParams[`${key}_${operator}`] = numValue;
+        delete processedParams[key as keyof AdvancedSearchParams];
+      }
+    });
+
+    // Validate remaining search params
+    const validatedParams = advancedSearchParamsSchema.parse(processedParams);
+
+    // Make API request with separated params
     const { data } = await advancedApi.post('/v2/advanced-search', 
       validatedParams,
-      { 
-        params: {
-          limit: queryParams.limit,
-          offset: queryParams.offset,
-          sort_field: queryParams.sort_field || 'Title',
-          sort_order: queryParams.sort_order || 'asc'
-        }
-      }
+      { params: apiQueryParams }
     );
 
     console.log('📥 Advanced Search Raw Response:', data);
 
-    // Validate response data
-    const validatedResults = z.array(jobDataSchema).parse(data.results);
+    // Validate and transform response
+    const validatedResults = z.array(jobDataSchema).parse(data.results) as APIJobData[];
     const transformedResults = validatedResults.map(mapAPIJobDataToJobData);
 
     console.log('✅ Advanced Search Success');
     console.groupEnd();
     
-    return {
+    const response = {
       results: transformedResults,
       total_count: data.total_count || 0,
       limit: data.limit,
       offset: data.offset
     };
+
+    searchCache.set(JSON.stringify({ searchParams, queryParams }), response);
+    
+    return response;
   } catch (error) {
     console.error('❌ Advanced Search Error:', error);
     console.groupEnd();
     return handleAPIError(error);
   }
-};
+}, 300);
 
 // Helper function to convert UI frequency values to DB numbers
 export const frequencyToNumber = (freq: string | undefined): number | undefined => {

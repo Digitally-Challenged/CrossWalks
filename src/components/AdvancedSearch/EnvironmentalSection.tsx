@@ -1,8 +1,8 @@
 import React from 'react';
-import { CloudLightning, HelpCircle } from 'lucide-react';
+import { HelpCircle } from 'lucide-react';
 import { 
   AdvancedSearchFilters, 
-  UIFrequencyDisplay, 
+  FrequencyLevel,
   UI_FREQUENCY_DISPLAY 
 } from '../../types/job';
 import { renderOptions } from '../../utils/helpers';
@@ -76,9 +76,9 @@ const EnvironmentalSection: React.FC<EnvironmentalSectionProps> = ({
   environmental, 
   setEnvironmental 
 }) => {
-  const frequencyOptions = Object.values(UI_FREQUENCY_DISPLAY) as UIFrequencyDisplay[];
+  const frequencyOptions = Object.values(UI_FREQUENCY_DISPLAY);
 
-  const handleUpdate = (field: string, value: UIFrequencyDisplay) => {
+  const handleUpdate = (field: string, value: FrequencyLevel) => {
     setEnvironmental({
       ...environmental,
       [field]: value
@@ -86,34 +86,31 @@ const EnvironmentalSection: React.FC<EnvironmentalSectionProps> = ({
   };
 
   return (
-    <div className="mb-6">
-      <h3 className="flex items-center mb-4 text-lg font-medium text-gray-100">
-        <CloudLightning className="w-5 h-5 text-blue-500" />
-        <span className="ml-2">Environmental Conditions</span>
-      </h3>
-      <div className="space-y-4">
-        {Object.entries(environmental).map(([field, value]) => (
-          <div key={field} className="group">
-            <div className="flex items-center mb-2">
-              <label className="text-sm font-medium text-gray-300">
-                {ENVIRONMENTAL_LABELS[field as keyof typeof ENVIRONMENTAL_LABELS]?.label}
-              </label>
-              <Tooltip 
-                content={ENVIRONMENTAL_LABELS[field as keyof typeof ENVIRONMENTAL_LABELS]?.description}
-                position="right"
-                delay={0.2}
-              >
-                <HelpCircle className="w-4 h-4 ml-2 text-gray-400 hover:text-gray-300 cursor-help" />
-              </Tooltip>
-            </div>
+    <div className="space-y-4">
+      {Object.entries(environmental).map(([field, value]) => (
+        <div key={field} className="flex items-center">
+          <div className="flex items-center w-48">
+            <span className="text-sm text-gray-300">
+              {ENVIRONMENTAL_LABELS[field as keyof typeof ENVIRONMENTAL_LABELS]?.label}
+            </span>
+            <Tooltip 
+              content={ENVIRONMENTAL_LABELS[field as keyof typeof ENVIRONMENTAL_LABELS]?.description}
+              position="right"
+              delay={0.2}
+            >
+              <HelpCircle className="w-4 h-4 ml-2 text-gray-400 hover:text-gray-300 cursor-help" />
+            </Tooltip>
+          </div>
+          <div className="flex-1 flex justify-center gap-2">
             {renderOptions(
               frequencyOptions,
               value,
-              (newValue) => handleUpdate(field, newValue as UIFrequencyDisplay)
+              (newValue) => handleUpdate(field, newValue as FrequencyLevel)
             )}
           </div>
-        ))}
-      </div>
+          <div className="w-48" />
+        </div>
+      ))}
     </div>
   );
 };

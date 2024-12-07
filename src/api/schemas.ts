@@ -1,4 +1,3 @@
-
 import { z } from 'zod';
 
 export const jobDataSchema = z.object({
@@ -7,7 +6,13 @@ export const jobDataSchema = z.object({
   Definitions: z.string().optional(),
   Industry: z.string().optional(),
   AltTitles: z.string().optional(),
-  SVPNum: z.number().optional(),
+  SVPNum: z.union([
+    z.number(),
+    z.object({
+      mode: z.enum(['maximum', 'equal', 'minimum']),
+      value: z.number()
+    })
+  ]).optional(),
   Strength: z.string().optional(),
   GOE: z.string().optional(),
   ClimbingNum: z.number().optional(),

@@ -1,7 +1,7 @@
 // Basic Types
 export type FrequencyLevel = 'Not Present' | 'Occasionally' | 'Frequently' | 'Constantly';
 export type StrengthFullName = 'Sedentary' | 'Light' | 'Medium' | 'Heavy' | 'Very Heavy';
-export type StrengthAbbrev = 'Sed' | 'Lt' | 'Med' | 'Hvy' | 'V Hvy';
+export type StrengthAbbrev = 'Sed' | 'Lt' | 'Med' | 'Hvy' | 'V Hvy' | 'S' | 'L' | 'M' | 'H' | 'VH';
 export type StrengthLevel = StrengthFullName | StrengthAbbrev | null;
 export type SVPLevel = '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9';
 export type GEDLevel = '1' | '2' | '3' | '4' | '5' | '6';
@@ -13,7 +13,7 @@ export type NoiseLevel = 'Very Quiet' | 'Quiet' | 'Moderate' | 'Loud' | 'Very Lo
 export type SearchMode = 'contains' | 'starts_with' | 'ends_with';
 export type SearchColumn = 'Title' | 'Code';
 export type SortOrder = 'asc' | 'desc';
-export type SortByType = 'SVP' | 'titleAsc' | 'titleDesc' | 'codeAsc' | 'codeDesc' | 'SVPNum' | 'Title' | 'Code' | 'Strength';
+export type SortByType = 'Title' | 'SVPNum' | 'Strength' | 'Code';
 
 // Mapping Constants
 export const NUMBER_TO_FREQUENCY: Record<number, FrequencyLevel> = {
@@ -44,7 +44,12 @@ export const STRENGTH_MAPPINGS = {
     'Lt': 'Light',
     'Med': 'Medium',
     'Hvy': 'Heavy',
-    'V Hvy': 'Very Heavy'
+    'V Hvy': 'Very Heavy',
+    'S': 'Sedentary',
+    'L': 'Light',
+    'M': 'Medium',
+    'H': 'Heavy',
+    'VH': 'Very Heavy'
   } as const,
   
   API_TO_UI: {
@@ -53,6 +58,14 @@ export const STRENGTH_MAPPINGS = {
     'Medium': 'Med',
     'Heavy': 'Hvy',
     'Very Heavy': 'V Hvy'
+  } as const,
+  
+  API_TO_SHORT: {
+    'Sedentary': 'S',
+    'Light': 'L',
+    'Medium': 'M',
+    'Heavy': 'H',
+    'Very Heavy': 'VH'
   } as const,
   
   TO_NUMBER: {
@@ -81,16 +94,12 @@ export const UI_FREQUENCY_DISPLAY = {
 
 // Interface Definitions
 export interface SearchParams {
-  search_term?: string;
-  title_search?: string;
-  code_search?: string;
-  limit?: number;
-  search_mode?: SearchMode;
-  sort_field?: SortByType;
-  sort_order?: SortOrder;
-  page?: number;
-  search_column?: SearchColumn;
-  offset?: number;
+  search_term: string;
+  search_column: SearchColumn;
+  limit: number;
+  offset: number;
+  sort_field: SortByType;
+  sort_order: 'asc' | 'desc';
 }
 
 export interface APIJobData {
@@ -369,6 +378,7 @@ export interface JobData {
 
 export interface AdvancedSearchFilters {
   title: string;
+  definition: string;
   strength: StrengthLevel | null;
   svp: SVPLevel | null;
   posturals: {
@@ -432,6 +442,7 @@ export interface AdvancedSearchFilters {
 }
 
 export interface AdvancedSearchParams extends SearchParams {
+  definition?: string;
   strength?: StrengthLevel;
   svp?: SVPLevel;
   posturals?: Record<string, FrequencyLevel>;

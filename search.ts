@@ -1,4 +1,4 @@
-import type { JobData } from './job';
+import type { JobData } from './src/types/job';
 
 export interface SearchResponse {
   results: JobData[];
