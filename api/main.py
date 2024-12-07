@@ -39,8 +39,8 @@ def get_db():
     db = SessionLocal()
     yield db
 
-# Define allowed columns for sorting and searching
-ALLOWED_SORT_FIELDS = set([
+# Define allowed columns for searching
+ALLOWED_SEARCH_FIELDS = set([
     'Ncode', 'DocumentNumber', 'Code', 'DLU', 'WFData', 'WFDataSig', 'WFPeople', 'WFPeopleSig',
     'WFThings', 'WFThingsSig', 'GEDR', 'GEDM', 'GEDL', 'SVPNum', 'AptGenLearn', 'AptVerbal',
     'AptNumerical', 'AptSpacial', 'AptFormPer', 'AptClericalPer', 'AptMotor', 'AptFingerDext',
@@ -55,6 +55,14 @@ ALLOWED_SORT_FIELDS = set([
     'Title', 'AltTitles', 'CompleteTitle', 'Industry', 'Definitions', 'GOE1', 'GOE2', 'GOE3',
     'WField1Short', 'WField2Short', 'WField3Short', 'MPSMS1Short', 'MPSMS2Short',
     'MPSMS3Short', 'OccGroup'
+])
+
+# Define allowed columns for sorting
+ALLOWED_SORT_FIELDS = set([
+    'Title',
+    'SVPNum',
+    'Strength',
+    'Code'
 ])
 
 Base = declarative_base()
@@ -248,13 +256,19 @@ class AdvancedSearchParams(BaseModel):
 @app.get("/search")
 def search(
     search_term: str = Query(..., description="Term to search for."),
-    search_column: str = Query('Title', description="Column to search in ('Title' or 'Code')"),
+    search_column: str = Query('Title', description="Column to search in"),
     limit: int = Query(20, ge=1, le=1000, description="Number of records to return."),
     search_mode: str = Query('contains', description="Mode of search ('contains', 'starts_with', 'ends_with')."),
-    sort_field: str = Query('Title', description="Name of the column to sort by."),
+    sort_field: str = Query('Title', description="Name of the column to sort by (Title, SVPNum, Strength, or Code)."),
     sort_order: str = Query('asc', description="Sort order ('asc', 'desc')."),
     offset: int = Query(0, ge=0, description="Number of records to skip for pagination.")
 ):
+    if search_column not in ALLOWED_SEARCH_FIELDS:
+        raise HTTPException(status_code=400, detail=f"Invalid search column")
+
+    if sort_field not in ALLOWED_SORT_FIELDS:
+        raise HTTPException(status_code=400, detail=f"Invalid sort field. Allowed fields are: Title, SVPNum, Strength, Code")
+
     try:
         results = search_table(
             database_path='dotdb061814 (1).db',

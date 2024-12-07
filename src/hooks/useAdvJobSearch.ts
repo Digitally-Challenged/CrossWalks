@@ -322,6 +322,7 @@ export const useAdvancedSearch = () => {
     loadMore: fetchNextPage,
     hasPerformedSearch,
     totalCount,
+    fetchNextPage,
   };
 };
 
