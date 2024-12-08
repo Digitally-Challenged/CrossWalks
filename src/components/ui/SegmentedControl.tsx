@@ -7,7 +7,8 @@ interface SegmentedControlProps<T extends number> {
   value: T | null;
   mode: FilterMode;
   options: Array<{ label: string; value: T }>;
-  onChange: (value: T | null, mode: FilterMode) => void;
+  onChange: (value: T | null) => void;
+  onModeChange: (mode: FilterMode) => void;
   className?: string;
   showDetails?: boolean;
   name?: string;
@@ -18,17 +19,19 @@ export const SegmentedControl = <T extends number>({
   mode,
   options,
   onChange,
+  onModeChange,
   className,
   showDetails = true,
   name
 }: SegmentedControlProps<T>): React.ReactElement => {
-  const handleModeChange = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
-    const newMode: FilterMode = 
-      mode === 'maximum' ? 'equal' :
-      mode === 'equal' ? 'minimum' : 'maximum';
+  const handleModeChange = useCallback(() => {
+    const modes: FilterMode[] = ['=', '≤', '≥'];
+    const currentModeIndex = modes.indexOf(mode);
+    const newModeIndex = (currentModeIndex + 1) % modes.length;
+    const newMode = modes[newModeIndex];
     
-    onChange(value, newMode);
-  }, [mode, value, onChange]);
+    onModeChange(newMode);
+  }, [mode, onModeChange]);
 
   return (
     <div className={cn('flex flex-col gap-2', className)}>
@@ -37,7 +40,7 @@ export const SegmentedControl = <T extends number>({
           {options.map((option) => (
             <button
               key={option.value}
-              onClick={() => onChange(option.value, mode)}
+              onClick={() => onChange(option.value)}
               className={cn(
                 'flex items-center justify-center rounded-lg px-4 py-2 text-sm font-medium transition-colors min-w-[2.5rem]',
                 value === option.value
@@ -56,16 +59,16 @@ export const SegmentedControl = <T extends number>({
           title={`Current: ${mode} mode. Click to change.`}
           aria-label={`Change filter mode for ${name}`}
         >
-          {mode === 'maximum' && '≤'}
-          {mode === 'equal' && '='}
-          {mode === 'minimum' && '≥'}
+          {mode === '≥' && '≥'}
+          {mode === '=' && '='}
+          {mode === '≤' && '≤'}
         </button>
       </div>
       {showDetails && (
         <div className="text-center text-xs text-gray-400">
-          {mode === 'maximum' && 'Showing values up to selected'}
-          {mode === 'equal' && 'Showing exact value match'}
-          {mode === 'minimum' && 'Showing values from selected up'}
+          {mode === '≥' && 'Showing values from selected up'}
+          {mode === '=' && 'Showing exact value match'}
+          {mode === '≤' && 'Showing values up to selected'}
         </div>
       )}
     </div>

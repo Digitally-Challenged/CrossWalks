@@ -1,7 +1,7 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Search, RefreshCw, ArrowLeft, User, Activity, Eye, Ear, Cloud, Users, GraduationCap } from 'lucide-react';
-import { JobData } from '../../types/job';
+import { JobData, StrengthLevel, SVPLevel } from '../../types/job';
 import BasicInfo from './BasicInfo';
 import PosturalsSection from './PosturalsSection';
 import ManipulativeSection from './ManipulativeSection';
@@ -14,7 +14,7 @@ import { useAdvancedSearch } from '../../hooks/useAdvJobSearch';
 import { Button, Card } from 'flowbite-react';
 import SearchResults from '../SearchResults';
 import { Table } from '../ui/Table';
-import type { FilterMode, StrengthLevel, SVPLevel, AdvancedSearchState } from '../../types/filters';
+import type { FilterMode } from '../../types/filters';
 
 interface AdvancedSearchProps {
   onBackToBasic: () => void;
@@ -35,6 +35,9 @@ const AdvancedSearch: React.FC<AdvancedSearchProps> = React.memo(({ onBackToBasi
     hasPerformedSearch
   } = useAdvancedSearch();
 
+  const [strengthMode, setStrengthMode] = useState<FilterMode>('=');
+  const [svpMode, setSvpMode] = useState<FilterMode>('=');
+
   const handleSearch = useCallback(async () => {
     console.log('🔍 Starting advanced search...');
     await submitSearch();
@@ -49,14 +52,14 @@ const AdvancedSearch: React.FC<AdvancedSearchProps> = React.memo(({ onBackToBasi
     await fetchNextPage();
   }, [fetchNextPage]);
 
-  const handleStrengthChange = useCallback((value: StrengthLevel | null, mode: FilterMode) => {
-    console.log('Strength change:', { value, mode });
-    updateFilters('strength', { value, mode });
+  const handleStrengthChange = useCallback((value: number | null) => {
+    console.log('Strength change:', { value });
+    updateFilters('strength', value?.toString() as StrengthLevel);
   }, [updateFilters]);
 
-  const handleSvpChange = useCallback((value: SVPLevel | null, mode: FilterMode) => {
-    console.log('SVP change:', { value, mode });
-    updateFilters('svp', { value, mode });
+  const handleSvpChange = useCallback((value: number | null) => {
+    console.log('SVP change:', { value });
+    updateFilters('svp', value?.toString() as SVPLevel);
   }, [updateFilters]);
 
   const formattedError = useMemo(() => {
@@ -66,12 +69,16 @@ const AdvancedSearch: React.FC<AdvancedSearchProps> = React.memo(({ onBackToBasi
     return new Error('An unknown error occurred');
   }, [error]);
 
-  // Ensure filters are properly initialized
-  const safeFilters: AdvancedSearchState = useMemo(() => ({
-    ...filters,
-    strength: filters.strength || { value: null, mode: 'maximum' },
-    svp: filters.svp || { value: null, mode: 'maximum' },
-  }), [filters]);
+  // Helper functions to convert string to number
+  const parseStrengthLevel = (strength: StrengthLevel | null): number | null => {
+    if (strength === null) return null;
+    return parseInt(strength, 10);
+  };
+
+  const parseSVPLevel = (svp: SVPLevel | null): number | null => {
+    if (svp === null) return null;
+    return parseInt(svp, 10);
+  };
 
   return (
     <motion.div
@@ -122,10 +129,10 @@ const AdvancedSearch: React.FC<AdvancedSearchProps> = React.memo(({ onBackToBasi
             className="text-center"
           >
             <BasicInfo
-              title={safeFilters.title}
-              definition={safeFilters.definition}
-              strength={safeFilters.strength}
-              svp={safeFilters.svp}
+              title={filters.title}
+              definition={filters.definition}
+              strength={parseStrengthLevel(filters.strength)} // Convert to number
+              svp={parseSVPLevel(filters.svp)} // Convert to number
               setTitle={(value) => updateFilters('title', value)}
               setDefinition={(value) => updateFilters('definition', value)}
               setStrength={handleStrengthChange}
@@ -142,7 +149,7 @@ const AdvancedSearch: React.FC<AdvancedSearchProps> = React.memo(({ onBackToBasi
             className="text-center"
           >
             <PosturalsSection
-              posturals={safeFilters.posturals}
+              posturals={filters.posturals}
               setPosturals={(value) => updateFilters('posturals', value)}
             />
           </Table>
@@ -156,7 +163,7 @@ const AdvancedSearch: React.FC<AdvancedSearchProps> = React.memo(({ onBackToBasi
             className="text-center"
           >
             <ManipulativeSection
-              manipulative={safeFilters.manipulative}
+              manipulative={filters.manipulative}
               setManipulative={(value) => updateFilters('manipulative', value)}
             />
           </Table>
@@ -170,7 +177,7 @@ const AdvancedSearch: React.FC<AdvancedSearchProps> = React.memo(({ onBackToBasi
             className="text-center"
           >
             <SensorySection
-              sensory={safeFilters.sensory}
+              sensory={filters.sensory}
               setSensory={(value) => updateFilters('sensory', value)}
             />
           </Table>
@@ -184,7 +191,7 @@ const AdvancedSearch: React.FC<AdvancedSearchProps> = React.memo(({ onBackToBasi
             className="text-center"
           >
             <VisualSection
-              visual={safeFilters.visual}
+              visual={filters.visual}
               setVisual={(value) => updateFilters('visual', value)}
             />
           </Table>
@@ -198,7 +205,7 @@ const AdvancedSearch: React.FC<AdvancedSearchProps> = React.memo(({ onBackToBasi
             className="text-center"
           >
             <EnvironmentalSection
-              environmental={safeFilters.environmental}
+              environmental={filters.environmental}
               setEnvironmental={(value) => updateFilters('environmental', value)}
             />
           </Table>
@@ -212,7 +219,7 @@ const AdvancedSearch: React.FC<AdvancedSearchProps> = React.memo(({ onBackToBasi
             className="text-center"
           >
             <WorkerFunctionsSection
-              workForce={safeFilters.workerFunctions}
+              workForce={filters.workerFunctions}
               setWorkForce={(value) => updateFilters('workerFunctions', value)}
             />
           </Table>
@@ -226,7 +233,7 @@ const AdvancedSearch: React.FC<AdvancedSearchProps> = React.memo(({ onBackToBasi
             className="text-center"
           >
             <GEDSection
-              ged={safeFilters.generalEducationalDevelopment}
+              ged={filters.generalEducationalDevelopment}
               setGed={(value) => updateFilters('generalEducationalDevelopment', value)}
             />
           </Table>

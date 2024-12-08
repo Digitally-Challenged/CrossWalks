@@ -1,20 +1,16 @@
-# Standard library imports
 import logging
 from typing import List, Optional, Union
-from contextlib import contextmanager
-
-# Third-party imports
-from fastapi import FastAPI, HTTPException, Query, Depends
+from fastapi import Body, Depends, FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from sqlalchemy import Column, Float, Integer, String, create_engine, inspect, or_
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import Session, sessionmaker
-import uvicorn
-
-# Local imports
 from database import search_table
+
+
+app = FastAPI()
 
 # Configure logging
 logging.basicConfig(
@@ -23,59 +19,51 @@ logging.basicConfig(
     format='%(asctime)s %(levelname)s:%(message)s'
 )
 
-# Application Constants
-DATABASE_PATH = "dotdb061814 (1).db"
-ALLOWED_SEARCH_FIELDS = {
-    'Title': 'Job title',
-    'Definitions': 'Job definition',
-    'Code': 'DOT code',
-    # ... other fields with descriptions
-}
-
-ALLOWED_SORT_FIELDS = {
-    'Title': 'Sort by job title',
-    'SVPNum': 'Sort by SVP level',
-    'Strength': 'Sort by strength requirement',
-    'Code': 'Sort by DOT code'
-}
-
-# Update the constants to include mapping information
-STRENGTH_MAP = {
-    1: 'S',  # Sedentary
-    2: 'L',  # Light
-    3: 'M',  # Medium
-    4: 'H',  # Heavy
-    5: 'V'   # Very Heavy
-}
-
-# FastAPI setup with metadata
-app = FastAPI(
-    title="DOT Database API",
-    description="API for searching Dictionary of Occupational Titles data",
-    version="2.0.0"
-)
-
 # CORS configuration
+origins = [
+    "*"  # Adjust this in production to restrict origins
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Database setup
+DATABASE_PATH = "dotdb061814 (1).db"
 engine = create_engine(f'sqlite:///{DATABASE_PATH}')
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
-@contextmanager
 def get_db():
-    """Database session context manager"""
     db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+    yield db
+
+# Define allowed columns for searching
+ALLOWED_SEARCH_FIELDS = set([
+    'Ncode', 'DocumentNumber', 'Code', 'DLU', 'WFData', 'WFDataSig', 'WFPeople', 'WFPeopleSig',
+    'WFThings', 'WFThingsSig', 'GEDR', 'GEDM', 'GEDL', 'SVPNum', 'AptGenLearn', 'AptVerbal',
+    'AptNumerical', 'AptSpacial', 'AptFormPer', 'AptClericalPer', 'AptMotor', 'AptFingerDext',
+    'AptManualDext', 'AptEyeHandCoord', 'AptColorDisc', 'WField1', 'WField2', 'WField3',
+    'MPSMS1', 'MPSMS2', 'MPSMS3', 'Temp1', 'Temp2', 'Temp3', 'Temp4', 'Temp5', 'GOE',
+    'GOENum', 'Strength', 'StrengthNum', 'ClimbingNum', 'BalancingNum', 'StoopingNum',
+    'KneelingNum', 'CrouchingNum', 'CrawlingNum', 'ReachingNum', 'HandlingNum', 'FingeringNum',
+    'FeelingNum', 'TalkingNum', 'HearingNum', 'TastingNum', 'NearAcuityNum', 'FarAcuityNum',
+    'DepthNum', 'AccommodationNum', 'ColorVisionNum', 'FieldVisionNum', 'WeatherNum',
+    'ColdNum', 'HeatNum', 'WetNum', 'NoiseNum', 'VibrationNum', 'AtmosphereNum', 'MovingNum',
+    'ElectricityNum', 'HeightNum', 'RadiationNum', 'ExplosionNum', 'ToxicNum', 'OtherNum',
+    'Title', 'AltTitles', 'CompleteTitle', 'Industry', 'Definitions', 'GOE1', 'GOE2', 'GOE3',
+    'WField1Short', 'WField2Short', 'WField3Short', 'MPSMS1Short', 'MPSMS2Short',
+    'MPSMS3Short', 'OccGroup'
+])
+
+# Define allowed columns for sorting
+ALLOWED_SORT_FIELDS = set([
+    'Title',
+    'SVPNum',
+    'Strength',
+    'Code'
+])
 
 Base = declarative_base()
 
@@ -173,27 +161,21 @@ class DOT(Base):
 
 
 
-class ComparisonValue(BaseModel):
-    operator: str  # 'eq', 'lt', 'gt', 'lte', 'gte'
-    value: Union[int, float, str]
-
-
-
 class AdvancedSearchParams(BaseModel):
     Ncode: Optional[int] = None
     DocumentNumber: Optional[str] = None
-    Code: Optional[Union[float, ComparisonValue]] = None
-    DLU: Optional[Union[int, ComparisonValue]] = None
-    WFData: Optional[Union[int, ComparisonValue]] = None
+    Code: Optional[float] = None
+    DLU: Optional[int] = None
+    WFData: Optional[int] = None
     WFDataSig: Optional[str] = None
     WFPeople: Optional[int] = None
     WFPeopleSig: Optional[str] = None
     WFThings: Optional[int] = None
     WFThingsSig: Optional[str] = None
-    GEDR: Optional[Union[int, ComparisonValue]] = None
-    GEDM: Optional[Union[int, ComparisonValue]] = None
-    GEDL: Optional[Union[int, ComparisonValue]] = None
-    SVPNum: Optional[Union[int, ComparisonValue]] = None
+    GEDR: Optional[int] = None
+    GEDM: Optional[int] = None
+    GEDL: Optional[int] = None
+    SVPNum: Optional[int] = None
     AptGenLearn: Optional[int] = None
     AptVerbal: Optional[int] = None
     AptNumerical: Optional[int] = None
@@ -218,7 +200,7 @@ class AdvancedSearchParams(BaseModel):
     Temp5: Optional[str] = None
     GOE: Optional[float] = None
     GOENum: Optional[int] = None
-    Strength: Optional[Union[str, int, ComparisonValue]] = None
+    Strength: Optional[str] = None
     StrengthNum: Optional[int] = None
     ClimbingNum: Optional[int] = None
     BalancingNum: Optional[int] = None
@@ -323,46 +305,48 @@ def advanced_search_v2(
     sort_order: str = Query('asc', regex="^(asc|desc)$")
 ):
     try:
-        # Convert search params to advanced filters format
-        advanced_filters = {}
+        query = db.query(DOT)
+
         for field, value in search_params.dict(exclude_unset=True).items():
             if value is not None:
-                # Add debug logging
-                logging.debug(f"Processing field {field} with value {value}")
-                
-                if field == 'Strength' and isinstance(value, (int, float)):
-                    # Map numeric strength values to letters
-                    value = STRENGTH_MAP.get(int(value))
-                    logging.debug(f"Mapped strength value to: {value}")
-                
-                if field == 'SVPNum' and isinstance(value, (int, float)):
-                    # Ensure SVP is an integer
-                    value = int(value)
-                    logging.debug(f"Converted SVP to integer: {value}")
-                
-                if isinstance(value, dict) and 'operator' in value:
-                    if field == 'Strength' and isinstance(value['value'], (int, float)):
-                        value['value'] = STRENGTH_MAP.get(int(value['value']))
-                        logging.debug(f"Mapped strength comparison value to: {value['value']}")
-                    advanced_filters[field] = value
-                else:
-                    advanced_filters[field] = value
+                column = getattr(DOT, field, None)
+                if column is None:
+                    continue
 
-        logging.debug(f"Final advanced filters: {advanced_filters}")
+                if isinstance(value, str):
+                    if field in ['Strength', 'StrengthNum', 'WFDataSig', 'WFPeopleSig', 'WFThingsSig']:
+                        query = query.filter(column == value)
+                    elif '%' in value:
+                        query = query.filter(column.ilike(value))
+                    else:
+                        query = query.filter(column.ilike(f"%{value}%"))
 
-        results = search_table(
-            database_path=DATABASE_PATH,
-            table_name='DOT',
-            model_class=DOT,
-            advanced_filters=advanced_filters,
-            limit=limit,
-            offset=offset,
-            sort_field=sort_field,
-            sort_order=sort_order
-        )
+                elif isinstance(value, (int, float)):
+                    query = query.filter(column == value)
+
+                elif isinstance(value, list):
+                    if len(value) == 2 and isinstance(value[0], (int, float)) and isinstance(value[1], (int, float)):
+                        query = query.filter(column.between(value[0], value[1]))
+                    else:
+                        query = query.filter(column.in_(value))
+
+        # Apply sorting
+        if sort_field in ALLOWED_SORT_FIELDS:
+            if sort_order.lower() == 'desc':
+                query = query.order_by(getattr(DOT, sort_field).desc())
+            else:
+                query = query.order_by(getattr(DOT, sort_field))
+
+
+        total_count = query.count()
+
+        results = query.offset(offset).limit(limit).all()
+        results = [row.__dict__ for row in results]
+        for result in results:
+            result.pop('_sa_instance_state', None)  
 
         return {
-            "total_count": len(results),
+            "total_count": total_count,
             "results": results,
             "limit": limit,
             "offset": offset
@@ -374,18 +358,4 @@ def advanced_search_v2(
     except Exception as e:
         logging.error(f"Unexpected error in advanced search: {str(e)}")
         raise HTTPException(status_code=500, detail="An unexpected error occurred")
-    
-
-# Add health check endpoint
-@app.get("/health")
-async def health_check():
-    return {"status": "healthy"}
-
-if __name__ == "__main__":
-    uvicorn.run(
-        "main:app",
-        host="127.0.0.1",
-        port=8002,  # Updated port
-        reload=True
-    )
     

@@ -29,8 +29,8 @@ const advancedApi = axios.create({
 // Define the internal filter types
 interface InternalFilters {
   title?: string;
-  strength?: string;
-  svp?: string;
+  strength?: number;
+  svp?: number;
   posturals?: {
     climbing?: string;
     balancing?: string;
@@ -89,7 +89,7 @@ interface InternalFilters {
 // Define the API request params type
 export interface APIAdvancedSearchParams {
   Title?: string;
-  Strength?: string;
+  Strength?: number;
   SVPNum?: number;
   ClimbingNum?: number;
   BalancingNum?: number;
@@ -135,47 +135,47 @@ export interface APIAdvancedSearchParams {
 // Define the Zod schema for validation
 export const advancedSearchParamsSchema = z.object({
   Title: z.string().optional(),
-  Strength: z.string().optional(),
-  SVPNum: z.number().optional(),
-  ClimbingNum: z.number().optional(),
-  BalancingNum: z.number().optional(),
-  StoopingNum: z.number().optional(),
-  KneelingNum: z.number().optional(),
-  CrouchingNum: z.number().optional(),
-  CrawlingNum: z.number().optional(),
-  ReachingNum: z.number().optional(),
-  HandlingNum: z.number().optional(),
-  FingeringNum: z.number().optional(),
-  FeelingNum: z.number().optional(),
-  TalkingNum: z.number().optional(),
-  HearingNum: z.number().optional(),
-  TastingNum: z.number().optional(),
-  NearAcuityNum: z.number().optional(),
-  FarAcuityNum: z.number().optional(),
-  DepthNum: z.number().optional(),
-  AccommodationNum: z.number().optional(),
-  ColorVisionNum: z.number().optional(),
-  FieldVisionNum: z.number().optional(),
-  WeatherNum: z.number().optional(),
-  ColdNum: z.number().optional(),
-  HeatNum: z.number().optional(),
-  WetNum: z.number().optional(),
-  NoiseNum: z.number().optional(),
-  VibrationNum: z.number().optional(),
-  AtmosphereNum: z.number().optional(),
-  MovingNum: z.number().optional(),
-  ElectricityNum: z.number().optional(),
-  HeightNum: z.number().optional(),
-  RadiationNum: z.number().optional(),
-  ExplosionNum: z.number().optional(),
-  ToxicNum: z.number().optional(),
-  OtherNum: z.number().optional(),
-  GEDR: z.number().optional(),
-  GEDM: z.number().optional(),
-  GEDL: z.number().optional(),
-  WFData: z.number().optional(),
-  WFPeople: z.number().optional(),
-  WFThings: z.number().optional()
+  Strength: z.number().optional(),
+  SVPNum: z.union([z.number(), z.object({ value: z.number(), operator: z.enum(['eq', 'lt', 'gt', 'lte', 'gte']) })]).optional(),
+  ClimbingNum: z.union([z.number(), z.object({ value: z.number(), operator: z.enum(['eq', 'lt', 'gt', 'lte', 'gte']) })]).optional(),
+  BalancingNum: z.union([z.number(), z.object({ value: z.number(), operator: z.enum(['eq', 'lt', 'gt', 'lte', 'gte']) })]).optional(),
+  StoopingNum: z.union([z.number(), z.object({ value: z.number(), operator: z.enum(['eq', 'lt', 'gt', 'lte', 'gte']) })]).optional(),
+  KneelingNum: z.union([z.number(), z.object({ value: z.number(), operator: z.enum(['eq', 'lt', 'gt', 'lte', 'gte']) })]).optional(),
+  CrouchingNum: z.union([z.number(), z.object({ value: z.number(), operator: z.enum(['eq', 'lt', 'gt', 'lte', 'gte']) })]).optional(),
+  CrawlingNum: z.union([z.number(), z.object({ value: z.number(), operator: z.enum(['eq', 'lt', 'gt', 'lte', 'gte']) })]).optional(),
+  ReachingNum: z.union([z.number(), z.object({ value: z.number(), operator: z.enum(['eq', 'lt', 'gt', 'lte', 'gte']) })]).optional(),
+  HandlingNum: z.union([z.number(), z.object({ value: z.number(), operator: z.enum(['eq', 'lt', 'gt', 'lte', 'gte']) })]).optional(),
+  FingeringNum: z.union([z.number(), z.object({ value: z.number(), operator: z.enum(['eq', 'lt', 'gt', 'lte', 'gte']) })]).optional(),
+  FeelingNum: z.union([z.number(), z.object({ value: z.number(), operator: z.enum(['eq', 'lt', 'gt', 'lte', 'gte']) })]).optional(),
+  TalkingNum: z.union([z.number(), z.object({ value: z.number(), operator: z.enum(['eq', 'lt', 'gt', 'lte', 'gte']) })]).optional(),
+  HearingNum: z.union([z.number(), z.object({ value: z.number(), operator: z.enum(['eq', 'lt', 'gt', 'lte', 'gte']) })]).optional(),
+  TastingNum: z.union([z.number(), z.object({ value: z.number(), operator: z.enum(['eq', 'lt', 'gt', 'lte', 'gte']) })]).optional(),
+  NearAcuityNum: z.union([z.number(), z.object({ value: z.number(), operator: z.enum(['eq', 'lt', 'gt', 'lte', 'gte']) })]).optional(),
+  FarAcuityNum: z.union([z.number(), z.object({ value: z.number(), operator: z.enum(['eq', 'lt', 'gt', 'lte', 'gte']) })]).optional(),
+  DepthNum: z.union([z.number(), z.object({ value: z.number(), operator: z.enum(['eq', 'lt', 'gt', 'lte', 'gte']) })]).optional(),
+  AccommodationNum: z.union([z.number(), z.object({ value: z.number(), operator: z.enum(['eq', 'lt', 'gt', 'lte', 'gte']) })]).optional(),
+  ColorVisionNum: z.union([z.number(), z.object({ value: z.number(), operator: z.enum(['eq', 'lt', 'gt', 'lte', 'gte']) })]).optional(),
+  FieldVisionNum: z.union([z.number(), z.object({ value: z.number(), operator: z.enum(['eq', 'lt', 'gt', 'lte', 'gte']) })]).optional(),
+  WeatherNum: z.union([z.number(), z.object({ value: z.number(), operator: z.enum(['eq', 'lt', 'gt', 'lte', 'gte']) })]).optional(),
+  ColdNum: z.union([z.number(), z.object({ value: z.number(), operator: z.enum(['eq', 'lt', 'gt', 'lte', 'gte']) })]).optional(),
+  HeatNum: z.union([z.number(), z.object({ value: z.number(), operator: z.enum(['eq', 'lt', 'gt', 'lte', 'gte']) })]).optional(),
+  WetNum: z.union([z.number(), z.object({ value: z.number(), operator: z.enum(['eq', 'lt', 'gt', 'lte', 'gte']) })]).optional(),
+  NoiseNum: z.union([z.number(), z.object({ value: z.number(), operator: z.enum(['eq', 'lt', 'gt', 'lte', 'gte']) })]).optional(),
+  VibrationNum: z.union([z.number(), z.object({ value: z.number(), operator: z.enum(['eq', 'lt', 'gt', 'lte', 'gte']) })]).optional(),
+  AtmosphereNum: z.union([z.number(), z.object({ value: z.number(), operator: z.enum(['eq', 'lt', 'gt', 'lte', 'gte']) })]).optional(),
+  MovingNum: z.union([z.number(), z.object({ value: z.number(), operator: z.enum(['eq', 'lt', 'gt', 'lte', 'gte']) })]).optional(),
+  ElectricityNum: z.union([z.number(), z.object({ value: z.number(), operator: z.enum(['eq', 'lt', 'gt', 'lte', 'gte']) })]).optional(),
+  HeightNum: z.union([z.number(), z.object({ value: z.number(), operator: z.enum(['eq', 'lt', 'gt', 'lte', 'gte']) })]).optional(),
+  RadiationNum: z.union([z.number(), z.object({ value: z.number(), operator: z.enum(['eq', 'lt', 'gt', 'lte', 'gte']) })]).optional(),
+  ExplosionNum: z.union([z.number(), z.object({ value: z.number(), operator: z.enum(['eq', 'lt', 'gt', 'lte', 'gte']) })]).optional(),
+  ToxicNum: z.union([z.number(), z.object({ value: z.number(), operator: z.enum(['eq', 'lt', 'gt', 'lte', 'gte']) })]).optional(),
+  OtherNum: z.union([z.number(), z.object({ value: z.number(), operator: z.enum(['eq', 'lt', 'gt', 'lte', 'gte']) })]).optional(),
+  GEDR: z.union([z.number(), z.object({ value: z.number(), operator: z.enum(['eq', 'lt', 'gt', 'lte', 'gte']) })]).optional(),
+  GEDM: z.union([z.number(), z.object({ value: z.number(), operator: z.enum(['eq', 'lt', 'gt', 'lte', 'gte']) })]).optional(),
+  GEDL: z.union([z.number(), z.object({ value: z.number(), operator: z.enum(['eq', 'lt', 'gt', 'lte', 'gte']) })]).optional(),
+  WFData: z.union([z.number(), z.object({ value: z.number(), operator: z.enum(['eq', 'lt', 'gt', 'lte', 'gte']) })]).optional(),
+  WFPeople: z.union([z.number(), z.object({ value: z.number(), operator: z.enum(['eq', 'lt', 'gt', 'lte', 'gte']) })]).optional(),
+  WFThings: z.union([z.number(), z.object({ value: z.number(), operator: z.enum(['eq', 'lt', 'gt', 'lte', 'gte']) })]).optional()
 });
 
 // Use the schema to derive the type
@@ -196,7 +196,7 @@ export interface SearchResponse {
 }
 
 // Add types for comparison operators
-type ComparisonOperator = 'eq' | 'lte' | 'gte';
+type ComparisonOperator = 'eq' | 'lt' | 'gt' | 'lte' | 'gte';
 
 interface APIQueryParams {
   [key: string]: string | number | undefined;
@@ -223,7 +223,6 @@ export const advancedSearchJobs = debounce(async (
   console.log('Query Params:', queryParams);
 
   try {
-    // Transform comparison operators into query parameters
     const apiQueryParams: APIQueryParams = {
       limit: queryParams.limit,
       offset: queryParams.offset,
@@ -231,10 +230,8 @@ export const advancedSearchJobs = debounce(async (
       sort_order: queryParams.sort_order || 'asc'
     };
 
-    // Create a copy of search params to modify
     const processedParams = { ...searchParams };
 
-    // Extract comparison operators and add to query params
     Object.entries(processedParams).forEach(([key, value]) => {
       if (value && typeof value === 'object' && 'operator' in value) {
         const { value: numValue, operator } = value as { value: number; operator: ComparisonOperator };
@@ -243,10 +240,8 @@ export const advancedSearchJobs = debounce(async (
       }
     });
 
-    // Validate remaining search params
     const validatedParams = advancedSearchParamsSchema.parse(processedParams);
 
-    // Make API request with separated params
     const { data } = await advancedApi.post('/v2/advanced-search', 
       validatedParams,
       { params: apiQueryParams }
@@ -254,7 +249,6 @@ export const advancedSearchJobs = debounce(async (
 
     console.log('📥 Advanced Search Raw Response:', data);
 
-    // Validate and transform response
     const validatedResults = z.array(jobDataSchema).parse(data.results) as APIJobData[];
     const transformedResults = validatedResults.map(mapAPIJobDataToJobData);
 

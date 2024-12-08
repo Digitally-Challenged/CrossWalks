@@ -1,4 +1,4 @@
-type FilterMode = 'maximum' | 'equal' | 'minimum';
+export type FilterMode = '=' | '≤' | '≥';
 
 // Frequency types for most physical and environmental demands
 type Frequency = 'NP' | 'Occ' | 'Freq' | 'Const';
@@ -93,7 +93,6 @@ export type {
   NoiseLevel,
   WorkForceLevel,
   GEDLevel,
-  FilterMode,
   FilterConfig,
   AdvancedSearchState
 };
