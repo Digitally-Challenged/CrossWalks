@@ -35,9 +35,6 @@ const AdvancedSearch: React.FC<AdvancedSearchProps> = React.memo(({ onBackToBasi
     hasPerformedSearch
   } = useAdvancedSearch();
 
-  const [strengthMode, setStrengthMode] = useState<FilterMode>('=');
-  const [svpMode, setSvpMode] = useState<FilterMode>('=');
-
   const handleSearch = useCallback(async () => {
     console.log('🔍 Starting advanced search...');
     await submitSearch();
@@ -62,6 +59,11 @@ const AdvancedSearch: React.FC<AdvancedSearchProps> = React.memo(({ onBackToBasi
     updateFilters('svp', value?.toString() as SVPLevel);
   }, [updateFilters]);
 
+  const handleSvpModeChange = useCallback((value: FilterMode) => {
+    console.log('SVP Mode change:', { value });
+    updateFilters('svpMode', value?.toString() as SVPLevel);
+  }, [updateFilters]);
+
   const formattedError = useMemo(() => {
     if (!error) return null;
     if (error instanceof Error) return error;
@@ -78,6 +80,10 @@ const AdvancedSearch: React.FC<AdvancedSearchProps> = React.memo(({ onBackToBasi
   const parseSVPLevel = (svp: SVPLevel | null): number | null => {
     if (svp === null) return null;
     return parseInt(svp, 10);
+  };
+
+  const parseSVPMode = (svpMode: FilterMode): FilterMode => {
+    return svpMode;
   };
 
   return (
@@ -133,10 +139,12 @@ const AdvancedSearch: React.FC<AdvancedSearchProps> = React.memo(({ onBackToBasi
               definition={filters.definition}
               strength={parseStrengthLevel(filters.strength)} // Convert to number
               svp={parseSVPLevel(filters.svp)} // Convert to number
+              svpMode={parseSVPMode(filters.svpMode)} // Convert to number
               setTitle={(value) => updateFilters('title', value)}
               setDefinition={(value) => updateFilters('definition', value)}
               setStrength={handleStrengthChange}
               setSvp={handleSvpChange}
+              setSvpMode={handleSvpModeChange}
             />
           </Table>
         </Card>

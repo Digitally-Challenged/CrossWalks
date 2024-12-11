@@ -135,8 +135,9 @@ export interface APIAdvancedSearchParams {
 // Define the Zod schema for validation
 export const advancedSearchParamsSchema = z.object({
   Title: z.string().optional(),
-  Strength: z.number().optional(),
-  SVPNum: z.union([z.number(), z.object({ value: z.number(), operator: z.enum(['eq', 'lt', 'gt', 'lte', 'gte']) })]).optional(),
+  Definition: z.string().optional(),
+  StrengthNum: z.number().optional(),
+  SVPNum: z.object({ value: z.number(), operator: z.enum(['eq', 'lt', 'gt', 'lte', 'gte']) }).optional(),
   ClimbingNum: z.union([z.number(), z.object({ value: z.number(), operator: z.enum(['eq', 'lt', 'gt', 'lte', 'gte']) })]).optional(),
   BalancingNum: z.union([z.number(), z.object({ value: z.number(), operator: z.enum(['eq', 'lt', 'gt', 'lte', 'gte']) })]).optional(),
   StoopingNum: z.union([z.number(), z.object({ value: z.number(), operator: z.enum(['eq', 'lt', 'gt', 'lte', 'gte']) })]).optional(),
@@ -195,9 +196,6 @@ export interface SearchResponse {
   offset: number;
 }
 
-// Add types for comparison operators
-type ComparisonOperator = 'eq' | 'lt' | 'gt' | 'lte' | 'gte';
-
 interface APIQueryParams {
   [key: string]: string | number | undefined;
 }
@@ -230,17 +228,7 @@ export const advancedSearchJobs = debounce(async (
       sort_order: queryParams.sort_order || 'asc'
     };
 
-    const processedParams = { ...searchParams };
-
-    Object.entries(processedParams).forEach(([key, value]) => {
-      if (value && typeof value === 'object' && 'operator' in value) {
-        const { value: numValue, operator } = value as { value: number; operator: ComparisonOperator };
-        apiQueryParams[`${key}_${operator}`] = numValue;
-        delete processedParams[key as keyof AdvancedSearchParams];
-      }
-    });
-
-    const validatedParams = advancedSearchParamsSchema.parse(processedParams);
+    const validatedParams: AdvancedSearchParams = advancedSearchParamsSchema.parse(searchParams);
 
     const { data } = await advancedApi.post('/v2/advanced-search', 
       validatedParams,
@@ -317,16 +305,6 @@ export const prepareAdvancedSearchParams = (filters: InternalFilters): AdvancedS
   // Title filter - only add if non-empty string
   if (filters.title?.trim()) {
     params.Title = filters.title.trim();
-  }
-
-  // Strength filter - only add if valid value
-  if (filters.strength && filters.strength !== 'ANY') {
-    params.Strength = filters.strength;
-  }
-
-  // SVP filter - only add if valid number
-  if (filters.svp && filters.svp !== 'ANY') {
-    params.SVPNum = parseInt(filters.svp, 10);
   }
 
   // Postural activities - only add if frequency is specified

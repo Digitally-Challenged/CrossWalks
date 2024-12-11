@@ -1,4 +1,4 @@
-export type FilterMode = '=' | '≤' | '≥';
+export type FilterMode = 'lte' | 'lt' | 'gt' | 'gte' | 'eq';
 
 // Frequency types for most physical and environmental demands
 type Frequency = 'NP' | 'Occ' | 'Freq' | 'Const';

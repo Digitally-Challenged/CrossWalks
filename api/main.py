@@ -1,5 +1,5 @@
 import logging
-from typing import List, Optional, Union
+from typing import List, Optional, Union, Literal
 from fastapi import Body, Depends, FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -160,6 +160,9 @@ class DOT(Base):
     OccGroup = Column(String)
 
 
+class FilterState(BaseModel):
+    value: int
+    operator: Literal['eq', 'lt', 'gt', 'lte', 'gte']
 
 class AdvancedSearchParams(BaseModel):
     Ncode: Optional[int] = None
@@ -175,7 +178,7 @@ class AdvancedSearchParams(BaseModel):
     GEDR: Optional[int] = None
     GEDM: Optional[int] = None
     GEDL: Optional[int] = None
-    SVPNum: Optional[int] = None
+    SVPNum: Optional[FilterState] = None
     AptGenLearn: Optional[int] = None
     AptVerbal: Optional[int] = None
     AptNumerical: Optional[int] = None
@@ -320,6 +323,21 @@ def advanced_search_v2(
                         query = query.filter(column.ilike(value))
                     else:
                         query = query.filter(column.ilike(f"%{value}%"))
+
+                if isinstance(value, dict) and "operator" in value and "value" in value:
+                    operator = value["operator"]
+                    param_value = value["value"]
+
+                    if operator == "eq":
+                        query = query.filter(column == param_value)
+                    elif operator == "lt":
+                        query = query.filter(column < param_value)
+                    elif operator == "lte":
+                        query = query.filter(column <= param_value)
+                    elif operator == "gt":
+                        query = query.filter(column > param_value)
+                    elif operator == "gte":
+                        query = query.filter(column >= param_value)
 
                 elif isinstance(value, (int, float)):
                     query = query.filter(column == value)

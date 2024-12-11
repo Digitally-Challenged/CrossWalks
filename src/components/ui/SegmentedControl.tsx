@@ -25,7 +25,7 @@ export const SegmentedControl = <T extends number>({
   name
 }: SegmentedControlProps<T>): React.ReactElement => {
   const handleModeChange = useCallback(() => {
-    const modes: FilterMode[] = ['=', '≤', '≥'];
+    const modes: FilterMode[] = ['eq', 'lte', 'gte'];
     const currentModeIndex = modes.indexOf(mode);
     const newModeIndex = (currentModeIndex + 1) % modes.length;
     const newMode = modes[newModeIndex];
@@ -59,16 +59,16 @@ export const SegmentedControl = <T extends number>({
           title={`Current: ${mode} mode. Click to change.`}
           aria-label={`Change filter mode for ${name}`}
         >
-          {mode === '≥' && '≥'}
-          {mode === '=' && '='}
-          {mode === '≤' && '≤'}
+          {mode === 'gte' && '≥'}
+          {mode === 'eq' && '='}
+          {mode === 'lte' && '≤'}
         </button>
       </div>
       {showDetails && (
         <div className="text-center text-xs text-gray-400">
-          {mode === '≥' && 'Showing values from selected up'}
-          {mode === '=' && 'Showing exact value match'}
-          {mode === '≤' && 'Showing values up to selected'}
+          {mode === 'gte' && 'Showing values from selected up'}
+          {mode === 'eq' && 'Showing exact value match'}
+          {mode === 'lte' && 'Showing values up to selected'}
         </div>
       )}
     </div>

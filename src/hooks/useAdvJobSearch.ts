@@ -1,6 +1,6 @@
 import { useInfiniteQuery, InfiniteData } from '@tanstack/react-query';
 import { useState, useCallback, useMemo, useEffect } from 'react';
-import apiAdvDatabaseService from '../api/advDataBase/apiAdvDatabaseService';
+import apiAdvDatabaseService, { AdvancedSearchParams } from '../api/advDataBase/apiAdvDatabaseService';
 import { 
   JobData, 
   FrequencyLevel, 
@@ -12,12 +12,14 @@ import {
   StrengthAbbrev,
   STRENGTH_MAPPINGS
 } from '../types/job';
+import { FilterMode } from '../types/filters';
 
 interface InternalFilters {
   title: string;
   definition: string;
   strength: StrengthLevel | null;
   svp: SVPLevel | null;
+  svpMode: FilterMode;
   posturals: {
     climbing: FrequencyLevel | '';
     balancing: FrequencyLevel | '';
@@ -91,6 +93,7 @@ const initialFilters: InternalFilters = {
   definition: '',
   strength: null,
   svp: null,
+  svpMode: 'eq',
   posturals: { climbing: '', balancing: '', stooping: '', kneeling: '', crouching: '', crawling: '' },
   manipulative: { reaching: '', handling: '', fingering: '' },
   sensory: { feeling: '', talking: '', hearing: '', tasteSmell: '' },
@@ -123,71 +126,9 @@ const processSearchResults = (data: JobSearchData | undefined) => {
   return data?.pages.flatMap(page => page.results) || [];
 };
 
-// Update the APISearchParams interface to include all possible parameters
-interface APISearchParams {
-  // Basic fields
-  Title?: string;
-  Definitions?: string;
-  StrengthNum?: number;
-  SVPNum?: number;
-
-  // Posturals
-  ClimbingNum?: number;
-  BalancingNum?: number;
-  StoopingNum?: number;
-  KneelingNum?: number;
-  CrouchingNum?: number;
-  CrawlingNum?: number;
-
-  // Manipulative
-  ReachingNum?: number;
-  HandlingNum?: number;
-  FingeringNum?: number;
-
-  // Sensory
-  FeelingNum?: number;
-  TalkingNum?: number;
-  HearingNum?: number;
-  TastingNum?: number;
-
-  // Visual
-  NearAcuityNum?: number;
-  FarAcuityNum?: number;
-  DepthNum?: number;
-  AccommodationNum?: number;
-  ColorVisionNum?: number;
-  FieldVisionNum?: number;
-
-  // Environmental
-  WeatherNum?: number;
-  ColdNum?: number;
-  HeatNum?: number;
-  WetNum?: number;
-  NoiseNum?: number;
-  VibrationNum?: number;
-  AtmosphereNum?: number;
-  MovingNum?: number;
-  ElectricityNum?: number;
-  HeightNum?: number;
-  RadiationNum?: number;
-  ExplosionNum?: number;
-  ToxicNum?: number;
-  OtherNum?: number;
-
-  // Worker Functions
-  WFData?: number;
-  WFPeople?: number;
-  WFThings?: number;
-
-  // GED
-  GEDR?: number;
-  GEDM?: number;
-  GEDL?: number;
-}
-
 // Improve parameter preparation
-const prepareApiParams = (filters: InternalFilters): APISearchParams => {
-  const apiParams: APISearchParams = {};
+const prepareApiParams = (filters: InternalFilters): AdvancedSearchParams => {
+  const apiParams: AdvancedSearchParams = {};
 
   // Title
   if (filters.title?.trim()) {
@@ -196,7 +137,7 @@ const prepareApiParams = (filters: InternalFilters): APISearchParams => {
 
   // Definition
   if (filters.definition?.trim()) {
-    apiParams.Definitions = filters.definition.trim();
+    apiParams.Definition = filters.definition.trim();
   }
 
   // Improved Strength handling
@@ -207,7 +148,7 @@ const prepareApiParams = (filters: InternalFilters): APISearchParams => {
   // Fixed SVP handling
   if (filters.svp) {
     const svpNum = parseInt(filters.svp.toString());
-    apiParams.SVPNum = !isNaN(svpNum) ? svpNum : undefined;
+    apiParams.SVPNum = !isNaN(svpNum) ? { value: svpNum, operator: filters.svpMode }  : undefined;
   }
 
   // Posturals
@@ -327,19 +268,7 @@ const prepareApiParams = (filters: InternalFilters): APISearchParams => {
   });
 
   console.log('🔍 Prepared API params:', apiParams);
-  return Object.fromEntries(
-    Object.entries(apiParams).filter(([_, value]) => 
-      value !== undefined && value !== null && !isNaN(value as number)
-    )
-  ) as APISearchParams;
-};
-
-// Add validation before API call
-const validateSearchParams = (params: APISearchParams): boolean => {
-  return Object.values(params).every(value => 
-    value !== undefined && value !== null && 
-    (typeof value === 'string' || !isNaN(value as number))
-  );
+  return apiParams;
 };
 
 export const useAdvancedSearch = () => {
@@ -362,10 +291,6 @@ export const useAdvancedSearch = () => {
     queryKey: ['advancedJobs', filters],
     queryFn: async ({ pageParam = 0 }) => {
       const apiParams = prepareApiParams(filters);
-      
-      if (!validateSearchParams(apiParams)) {
-        throw new Error('Invalid search parameters');
-      }
 
       const paginationParams: PaginationParams = {
         limit: 20,
@@ -380,7 +305,7 @@ export const useAdvancedSearch = () => {
       });
 
       const response = await apiAdvDatabaseService.advancedSearchJobs(
-        apiParams as APISearchParams,
+        apiParams,
         paginationParams
       );
 

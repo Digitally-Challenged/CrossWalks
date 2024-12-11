@@ -8,10 +8,12 @@ interface BasicInfoProps {
   definition: string;
   strength: number | null;
   svp: number | null;
+  svpMode: FilterMode;
   setTitle: (value: string) => void;
   setDefinition: (value: string) => void;
   setStrength: (value: number | null) => void;
   setSvp: (value: number | null) => void;
+  setSvpMode: (value: FilterMode) => void;
 }
 
 const STRENGTH_OPTIONS = [
@@ -34,9 +36,8 @@ const SVP_OPTIONS = [
   { label: '9', value: 9 }
 ];
 
-const BasicInfo = React.memo(({ title, definition, strength, svp, setTitle, setDefinition, setStrength, setSvp }: BasicInfoProps) => {
-  const [strengthMode, setStrengthMode] = useState<FilterMode>('=');
-  const [svpMode, setSvpMode] = useState<FilterMode>('=');
+const BasicInfo = React.memo(({ title, definition, strength, svp, svpMode, setTitle, setDefinition, setStrength, setSvp, setSvpMode }: BasicInfoProps) => {
+  const [strengthMode, setStrengthMode] = useState<FilterMode>('eq');
 
   return (
     <div className="space-y-4">
@@ -93,7 +94,7 @@ const BasicInfo = React.memo(({ title, definition, strength, svp, setTitle, setD
           onChange={(value: number | null) => setSvp(value)}
           options={SVP_OPTIONS}
           mode={svpMode}
-          onModeChange={setSvpMode}
+          onModeChange={(value: FilterMode) => setSvpMode(value)}
           name="svp"
           showDetails
         />
